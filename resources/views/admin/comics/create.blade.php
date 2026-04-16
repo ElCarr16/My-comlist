@@ -31,16 +31,6 @@
 
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select name="status" class="form-select" required>
-                                <option value="pre-release">Pre-Release</option>
-                                <option value="on-going">On-Going</option>
-                                <option value="stopped">Stopped</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label">Total Chapter Saat Ini</label>
                             <input type="number" name="total_chapter" class="form-control"
                                 value="{{ old('total_chapter', 0) }}" min="0" required>
@@ -50,51 +40,42 @@
                             <label class="form-label">Cover Image</label>
                             <input type="file" name="cover_image" class="form-control" accept="image/*">
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Tipe Komik</label>
                             <select name="type" class="form-select" required>
-                                <option value="manga" {{ old('type', $comic->type ?? '') == 'manga' ? 'selected' : '' }}>
-                                    Manga (Jepang)</option>
-                                <option value="manhwa" {{ old('type', $comic->type ?? '') == 'manhwa' ? 'selected' : '' }}>
-                                    Manhwa (Korea)
-                                </option>
-                                <option value="manhua" {{ old('type', $comic->type ?? '') == 'manhua' ? 'selected' : '' }}>
-                                    Manhua (China)
-                                </option>
-                                <option value="oneshot"
-                                    {{ old('type', $comic->type ?? '') == 'oneshot' ? 'selected' : '' }}>Oneshot</option>
+                                <option value="manga" {{ old('type') == 'manga' ? 'selected' : '' }}>Manga (Jepang)</option>
+                                <option value="manhwa" {{ old('type') == 'manhwa' ? 'selected' : '' }}>Manhwa (Korea)</option>
+                                <option value="manhua" {{ old('type') == 'manhua' ? 'selected' : '' }}>Manhua (China)</option>
+                                <option value="oneshot" {{ old('type') == 'oneshot' ? 'selected' : '' }}>Oneshot</option>
                             </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Status</label>
                             <select name="status" class="form-select" required>
-                                <option value="on-going"
-                                    {{ old('status', $comic->status ?? '') == 'on-going' ? 'selected' : '' }}>On-Going
-                                </option>
-                                <option value="completed"
-                                    {{ old('status', $comic->status ?? '') == 'completed' ? 'selected' : '' }}>Completed
-                                </option>
-                                <option value="dropped"
-                                    {{ old('status', $comic->status ?? '') == 'dropped' ? 'selected' : '' }}>Dropped
-                                    (Berhenti)</option>
-                                <option value="dikapak"
-                                    {{ old('status', $comic->status ?? '') == 'dikapak' ? 'selected' : '' }}>Dikapak
-                                    (Axed)</option>
+                                <option value="on-going" {{ old('status') == 'on-going' ? 'selected' : '' }}>On-Going</option>
+                                <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                                <option value="hiatus" {{ old('status') == 'hiatus' ? 'selected' : '' }}>Hiatus</option>
+                                <option value="dropped" {{ old('status') == 'dropped' ? 'selected' : '' }}>Dropped (Berhenti)</option>
+                                <option value="dikapak" {{ old('status') == 'dikapak' ? 'selected' : '' }}>Dikapak (Axed)</option>
                             </select>
                         </div>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Tahun Rilis</label>
                                 <input type="number" name="release_year" class="form-control" placeholder="Contoh: 2023"
-                                    value="{{ old('release_year', $comic->release_year ?? '') }}">
+                                    value="{{ old('release_year') }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Tahun Tamat</label>
                                 <input type="number" name="finish_year" class="form-control"
                                     placeholder="Kosongkan jika masih on-going"
-                                    value="{{ old('finish_year', $comic->finish_year ?? '') }}">
+                                    value="{{ old('finish_year') }}">
                             </div>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label d-block">Pilih Genre (Minimal 1)</label>
                             <div class="border p-2 rounded" style="max-height: 150px; overflow-y: auto;">

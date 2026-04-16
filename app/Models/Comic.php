@@ -40,7 +40,12 @@ class Comic extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'comic_user')
-            ->withPivot('reading_status', 'score', 'last_read_chapter')
+            ->withPivot('reading_status', 'last_read_chapter', 'score')
             ->withTimestamps();
+    }
+    //fitur Manual Like
+    public function likedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'comic_likes')->withTimestamps();
     }
 }

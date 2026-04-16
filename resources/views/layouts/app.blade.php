@@ -5,67 +5,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'MyComList')</title>
+
+    {{-- FONT --}}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    {{-- BOOTSTRAP --}}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+    {{-- SLOT UNTUK CSS KHUSUS HALAMAN (PENTING!) --}}
+    @yield('styles')
+
+    <style>
+        /* BASE STYLES */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f0f0f;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: transparent;
+        }
+
+        .nav-link {
+            color: #ccc !important;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            font-weight: 600;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+        }
+
+        /* BUTTONS */
+        .btn-orange {
+            background: #ff4d00;
+            color: white;
+            border-radius: 50px;
+            padding: 10px 25px;
+            transition: 0.3s;
+            border: none;
+            font-weight: 800;
+        }
+
+        .btn-orange:hover {
+            background: #e84300;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* REUSABLE CLASSES */
+        .dark-section {
+            background: #111;
+            border-radius: 30px;
+            padding: 50px;
+        }
+
+        .card-custom {
+            background: #1a1a1a;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #222;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border-color: #333;
+        }
+
+        /* PAGINATION STYLING (Agar matching dengan Dark Mode) */
+        .pagination .page-link {
+            background-color: #1a1a1a;
+            border-color: #333;
+            color: #fff;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #ff4d00;
+            border-color: #ff4d00;
+        }
+    </style>
 </head>
 
-<body style="font-family: sans-serif; margin: 0; padding: 0; background-color: #f9f9f9;">
+<body>
 
-    <nav
-        style="background-color: #333; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    {{-- NAVBAR --}}
+    <nav class="navbar navbar-expand-lg px-4 py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-white fs-4" href="{{ url('/') }}" style="letter-spacing: -1px;">
+                MyComList
+            </a>
 
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <a href="{{ url('/') }}"
-                style="color: white; text-decoration: none; font-weight: bold; font-size: 22px; margin-right: 15px;">MyComList</a>
+            <button class="navbar-toggler text-white border-0" data-bs-toggle="collapse" data-bs-target="#nav">
+                <i class="bi bi-list fs-2"></i>
+            </button>
 
-            <a href="{{ route('comics.index') }}"
-                style="color: #ddd; text-decoration: none; font-size: 16px; transition: color 0.3s;"
-                onmouseover="this.style.color='white'" onmouseout="this.style.color='#ddd'">Katalog</a>
+            <div class="collapse navbar-collapse" id="nav">
+                <ul class="navbar-nav ms-auto align-items-center gap-3 text-uppercase"
+                    style="font-size: 0.75rem; letter-spacing: 1px;">
+                    <li><a class="nav-link" href="{{ url('/') }}">Home</a></li>
+                    <li><a class="nav-link" href="{{ route('comics.index') }}">Komik</a></li>
 
-            @auth
-                <a href="{{ route('user.dashboard') }}"
-                    style="color: #ddd; text-decoration: none; font-size: 16px; transition: color 0.3s;"
-                    onmouseover="this.style.color='white'" onmouseout="this.style.color='#ddd'">My List</a>
-            @endauth
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 20px;">
-            @guest
-                <a href="{{ route('login') }}" style="color: white; text-decoration: none; font-size: 16px;">Login</a>
-                <a href="{{ route('register') }}"
-                    style="background-color: #007bff; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 14px; font-weight: bold;">Daftar</a>
-            @else
-                <span style="color: #aaa; font-size: 14px;">Halo, <strong>{{ Auth::user()->name }}</strong></span>
-
-                <a href="#" style="color: #ddd; text-decoration: none; font-size: 16px; transition: color 0.3s;"
-                    onmouseover="this.style.color='white'" onmouseout="this.style.color='#ddd'">Profil</a>
-
-                <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
-                    @csrf
-                    <button type="submit"
-                        style="background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 16px; padding: 0; font-weight: bold;"
-                        onmouseover="this.style.color='#ff1a1a'" onmouseout="this.style.color='#ff4d4d'">Logout</button>
-                </form>
-            @endauth
+                    @guest
+                        <li><a class="nav-link" href="{{ route('login') }}">Login</a></li>
+                        <li>
+                            <a class="btn btn-orange" href="{{ route('register') }}">
+                                Daftar <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </li>
+                    @else
+                        <li><a class="nav-link" href="{{ route('user.dashboard') }}">Koleksi</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-white fw-bold d-flex align-items-center gap-2"
+                                href="#" id="userMenu" role="button" data-bs-toggle="dropdown"
+                                style="text-transform: none;">
+                                <i class="bi bi-person-circle fs-5"></i> {{ Auth::user()->user_name ?? Auth::user()->name }}
+                            </a>
+                            <ul
+                                class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-dark border-secondary shadow-lg mt-2">
+                                <li><a class="dropdown-item py-2" href="{{ route('user.profile') }}"><i
+                                            class="bi bi-person me-2"></i> Profil Saya</a></li>
+                                <li>
+                                    <hr class="dropdown-divider bg-secondary">
+                                </li>
+                                <li>
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger fw-bold py-2"><i
+                                                class="bi bi-box-arrow-right me-2"></i> Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    @endguest
+                </ul>
+            </div>
         </div>
     </nav>
 
-    <main style="padding: 20px;">
+    {{-- AREA KONTEN DINAMIS --}}
+    <main class="flex-grow-1">
         @yield('content')
     </main>
-    <script>
-        function togglePassword(inputId, iconId) {
-            const passwordInput = document.getElementById(inputId);
-            const eyeIcon = document.getElementById(iconId);
-            if (!passwordInput || !eyeIcon) return;
 
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                eyeIcon.innerText = "🙈";
-            } else {
-                passwordInput.type = "password";
-                eyeIcon.innerText = "👁️";
-            }
-        }
-    </script>
+    {{-- SCRIPT --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    @yield('scripts')
 </body>
 
 </html>

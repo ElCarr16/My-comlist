@@ -8,7 +8,8 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ComicController as AdminComicController;
 use App\Http\Controllers\Admin\GenreController;
 use App\Http\Controllers\AuthController;
-
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,12 +19,10 @@ Route::get('/', function () {
 Route::get('/comics', [ComicController::class, 'index'])->name('comics.index');
 Route::get('/comics/{comic:slug}', [ComicController::class, 'show'])->name('comics.show');
 
-
-// Route untuk pengunjung yang belum login (Guest)
+// Route untuk pengunjung yang BELUM login (Guest)
 Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
-
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
 });
@@ -33,27 +32,30 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 // Rute khusus Admin (Dilindungi Auth & IsAdmin)
 Route::middleware(['auth', IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
-
-    // Halaman Utama Dashboard Admin (/admin)
     Route::get('/', function () {
         return view('admin.dashboard');
     })->name('dashboard');
-
-    // Otomatis membuat semua rute CRUD
     Route::resource('users', UserController::class);
     Route::resource('comics', AdminComicController::class);
     Route::resource('genres', GenreController::class);
+
+    // Rute profil dihapus dari sini karena ini area Admin
 });
-// Route khusus User yang sudah Login (Untuk fitur Tracker)
+
+// Route khusus User yang SUDAH Login (Auth)
 Route::middleware('auth')->group(function () {
-    // Halaman Dashboard User
-    Route::get('/dashboard', function () {
-        return view('user.dashboard');
-    })->name('user.dashboard');
 
-    // Route untuk update My List
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('user.dashboard');
+
+    // --- MULAI AREA PROFIL ---
+    // 1. Halaman Lihat Profil
+    Route::get('/profile', [ProfileController::class, 'index'])->name('user.profile');
+    // 2. Halaman Form Edit Profil
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('user.profile.edit');
+    // 3. Proses Simpan Edit Profil
+    Route::post('/profile/update', [ProfileController::class, 'update'])->name('user.profile.update');
+    // --- AKHIR AREA PROFIL ---
+
     Route::post('/tracker/{comic}', [TrackerController::class, 'update'])->name('tracker.update');
-    // Misalnya nanti kita buat fitur tambah komik ke tracker
-    // Route::post('/tracker/add', [TrackerController::class, 'store'])->name('tracker.add');
-
+    Route::post('/comics/{comic}/like', [ComicController::class, 'toggleLike'])->name('comics.like');
 });

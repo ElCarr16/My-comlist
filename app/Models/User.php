@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',      // Ditambahkan agar bisa memberikan akses admin
+        'profile_image',
     ];
 
     /**
@@ -58,5 +59,10 @@ class User extends Authenticatable
         return $this->belongsToMany(Comic::class, 'comic_user')
             ->withPivot('reading_status', 'score', 'last_read_chapter')
             ->withTimestamps();
+    }
+    // Relasi agar User bisa nge-like komik
+    public function likedComics()
+    {
+        return $this->belongsToMany(Comic::class, 'comic_likes')->withTimestamps();
     }
 }

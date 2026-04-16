@@ -8,27 +8,34 @@ use Illuminate\Support\Facades\Auth;
 
 class TrackerController extends Controller
 {
-    public function update(Request $request, Comic $comic)
+    public function update(Request $request, $comicId)
     {
-        // Validasi input dari user
+        // 1. Validasi inputan (Termasuk menangkap skor 1-10)
         $request->validate([
-            'reading_status' => 'required|in:reading,completed,plan_to_read,dropped',
-            'score' => 'nullable|integer|min:1|max:10',
-            // Pastikan chapter yang dibaca tidak melebihi total chapter komik
-            'last_read_chapter' => 'required|integer|min:0|max:' . $comic->total_chapter,
+            'reading_status'    => 'required|in:plan_to_read,reading,completed,dropped',
+            'last_read_chapter' => 'required|integer|min:0',
+            'score'             => 'nullable|integer|min:1|max:10' // Ini wajib ada agar sistem tahu ada skor
         ]);
 
-        // Simpan atau Update ke tabel pivot comic_user
-        // syncWithoutDetaching sangat penting di sini!
-        // Ini memastikan komik lain di My List tidak ikut terhapus.
-        auth()->user()->trackedComics()->syncWithoutDetaching([
-            $comic->id => [
-                'reading_status' => $request->reading_status,
-                'score' => $request->score,
+        $user = Auth::user();
+
+        // 2. Logika Cerdas: Cek apakah user sudah pernah menambahkan komik ini sebelumnya
+        if ($user->trackedComics()->where('comic_id', $comicId)->exists()) {
+            // Jika SUDAH ADA di My List, kita UPDATE nilainya (termasuk skor terbarunya)
+            $user->trackedComics()->updateExistingPivot($comicId, [
+                'reading_status'    => $request->reading_status,
                 'last_read_chapter' => $request->last_read_chapter,
-            ]
-        ]);
+                'score'             => $request->score // Simpan skor ke database
+            ]);
+        } else {
+            // Jika BELUM ADA, kita TAMBAHKAN data baru
+            $user->trackedComics()->attach($comicId, [
+                'reading_status'    => $request->reading_status,
+                'last_read_chapter' => $request->last_read_chapter,
+                'score'             => $request->score // Simpan skor ke database
+            ]);
+        }
 
-        return back()->with('success', 'Progress bacaan berhasil diupdate di My List!');
+        return back()->with('success', 'Berhasil! My List dan Skor kamu sudah tersimpan.');
     }
 }
