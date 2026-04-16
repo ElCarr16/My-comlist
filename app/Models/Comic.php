@@ -11,6 +11,19 @@ class Comic extends Model
 
     // Melindungi ID, sisanya boleh diisi massal
     protected $guarded = ['id'];
+    protected $fillable = [
+        'title',
+        'slug',
+        'synopsis',
+        'author',
+        'type',
+        'release_year',
+        'finish_year',
+        'cover_image',
+        'status',
+        'total_chapter',
+        'total_volume',
+    ];
 
     /**
      * Relasi Many-to-Many ke Genre
@@ -27,7 +40,7 @@ class Comic extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'comic_user')
-                    ->withPivot('reading_status', 'score', 'last_read_chapter')
-                    ->withTimestamps();
+            ->withPivot('reading_status', 'score', 'last_read_chapter')
+            ->withTimestamps();
     }
 }

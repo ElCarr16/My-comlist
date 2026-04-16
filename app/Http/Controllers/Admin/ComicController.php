@@ -33,7 +33,8 @@ class ComicController extends Controller
             'author'        => 'nullable|string|max:255',
             'status'        => 'required|in:pre-release,on-going,stopped,completed',
             'total_chapter' => 'required|integer|min:0',
-            'cover_image'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Maksimal 2MB
+            'cover_image'   => 'nullable|image|mimes:jpeg,png,jpg,webp,jfif|max:2048', // Maksimal 2MB
+            'type' => 'required|in:manga,manhwa,manhua,oneshot',
             'genres'        => 'required|array', // Pastikan minimal ada 1 genre yang dipilih
             'genres.*'      => 'exists:genres,id' // Pastikan ID genre-nya valid
         ]);
@@ -72,7 +73,8 @@ class ComicController extends Controller
             'author'        => 'nullable|string|max:255',
             'status'        => 'required|in:pre-release,on-going,stopped,completed',
             'total_chapter' => 'required|integer|min:0',
-            'cover_image'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'cover_image'   => 'nullable|image|mimes:jpeg,png,jpg,webp,jfif|max:2048',
+            'type' => 'required|in:manga,manhwa,manhua,oneshot',
             'genres'        => 'required|array',
             'genres.*'      => 'exists:genres,id'
         ]);
