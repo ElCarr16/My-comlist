@@ -96,12 +96,14 @@
                     <div id="like-container">
                         @auth
                             @php $isLiked = auth()->user()->likedComics->contains($comic->id); @endphp
-                            <button onclick="toggleLikeDetail({{ $comic->id }}, this)"
-                                class="btn {{ $isLiked ? 'btn-orange' : 'btn-dark border border-secondary text-white' }} w-100 py-3 fw-bold shadow-sm"
-                                style="border-radius: 16px;">
-                                <i class="bi {{ $isLiked ? 'bi-heart-fill' : 'bi-heart' }} me-2"></i>
-                                <span class="likes-count">{{ $comic->likedByUsers->count() }}</span> Likes
-                            </button>
+                            <div>
+                                <button wire:click="toggleLike"
+                                    class="btn {{ $isLiked ? 'btn-orange' : 'btn-dark border border-secondary text-white' }} w-100 py-3 fw-bold shadow-sm"
+                                    style="border-radius: 16px;">
+                                    <i class="bi {{ $isLiked ? 'bi-heart-fill' : 'bi-heart' }} me-2"></i>
+                                    {{ $likesCount }} Likes
+                                </button>
+                            </div>
                         @else
                             <a href="{{ route('login') }}"
                                 class="btn btn-dark border border-secondary text-white w-100 py-3 fw-bold"

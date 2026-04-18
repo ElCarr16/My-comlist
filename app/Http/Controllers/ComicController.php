@@ -18,7 +18,10 @@ class ComicController extends Controller
 
         // 2. Filter Pencarian Judul
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $query->where('title', 'like', '%' . $request->search . '%')
+            ->orWhere('synopsis', 'like', '%' . $request->search . '%')
+            ->orWhere('author', 'like', '%' . $request->search . '%');
+
         }
 
         // 3. Filter Kategori Genre

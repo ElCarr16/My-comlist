@@ -116,11 +116,14 @@
                     <li><a class="nav-link" href="{{ route('comics.index') }}">Komik</a></li>
 
                     @guest
-                        <li><a class="nav-link" href="{{ route('login') }}">Login</a></li>
-                        <li>
-                            <a class="btn btn-orange" href="{{ route('register') }}">
-                                Daftar <i class="bi bi-arrow-right ms-1"></i>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle fs-5"></i>
                             </a>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-dark border-secondary shadow-lg mt-2">
+                                <li><a class="dropdown-item py-2" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right me-2"></i> Sign In</a></li>
+                                <li><a class="dropdown-item py-2" href="{{ route('register') }}"><i class="bi bi-person-plus me-2"></i> Sign Up</a></li>
+                            </ul>
                         </li>
                     @else
                         <li><a class="nav-link" href="{{ route('user.dashboard') }}">Koleksi</a></li>
