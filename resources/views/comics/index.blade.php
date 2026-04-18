@@ -24,6 +24,10 @@
         border-color: #ff4d00 !important;
         box-shadow: 0 0 0 0.25rem rgba(255, 77, 0, 0.25) !important;
     }
+    .filter-input::placeholder {
+        color: #ffffff !important;
+        opacity: 0.7; /* Sedikit diturunkan opacity-nya agar bisa dibedakan dengan teks input */
+    }
 
     @media (max-width: 768px) {
         .katalog-section { 
