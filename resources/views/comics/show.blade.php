@@ -216,8 +216,8 @@
                                         <input type="number" name="last_read_chapter"
                                             class="form-control filter-input py-2 border-end-0"
                                             @if ($comic->total_chapter > 0) max="{{ $comic->total_chapter }}" @endif
-                                            min="0" placeholder="0">
-                                        {{-- '/' dan logika '?' untuk komik on-going --}}
+                                            min="0" placeholder="0"
+                                            value="{{ old('last_read_chapter', $tracked->pivot->last_read_chapter ?? '') }}">
                                         <span class="input-group-text bg-dark text-secondary border-dark border-start-0 py-2">
                                             / {{ $comic->total_chapter > 0 ? $comic->total_chapter : '?' }}
                                         </span>
@@ -226,7 +226,7 @@
                                 <div class="col-md-4">
                                     <label class="text-secondary small mb-2 fw-semibold">SKOR (1-10)</label>
                                     <input type="number" name="score" class="form-control filter-input py-2" placeholder="-"
-                                        value="{{ $tracked->pivot->score ?? '' }}" max="10" min="1"
+                                        value="{{ old('score', $tracked->pivot->score ?? '') }}" max="10" min="1"
                                         step="0.1">
                                 </div>
                             </div>

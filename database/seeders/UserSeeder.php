@@ -8,28 +8,29 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-
     public function run(): void
     {
-        // 1. Membuat Akun Admin
-        User::create([
-            'user_name' => 'admin_utama',
-            'name' => 'Administrator',
-            'email' => 'admin@mycomlist.com',
-            'password' => Hash::make('password123'), // Password default
-            'role' => 'admin',
-        ]);
+        //updateOrCreate agar tidak error jika data sudah ada
+        User::updateOrCreate(
+            ['email' => env('ADMIN_EMAIL')],
+            [
+                'user_name' => 'admin_utama',
+                'name' => 'Administrator',
+                'password' => Hash::make(env('ADMIN_PASSWORD')),
+                'role' => 'admin',
+            ]
+        );
 
-        // 2. Membuat Akun User Biasa
-        User::create([
-            'user_name' => 'fajar_user',
-            'name' => 'Fajar',
-            'email' => 'user@mycomlist.com',
-            'password' => Hash::make('password123'),
-            'role' => 'user',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'user@mycomlist.com'],
+            [
+                'user_name' => 'fajar_user',
+                'name' => 'Fajar',
+                'password' => Hash::make('password123'),
+                'role' => 'user',
+            ]
+        );
     }
-    
     public function definition(): array
     {
         return [
