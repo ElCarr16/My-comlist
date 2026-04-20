@@ -110,6 +110,18 @@
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                         <div>
                             <h1 class="fw-bold mb-2 display-6">{{ $comic->title }}</h1>
+                            @if ($comic->alternative_titles)
+                                <div class="mt-2 mb-4">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (explode(', ', $comic->alternative_titles) as $alt)
+                                            <span
+                                                class="badge bg-dark border border-secondary border-opacity-25 fw-normal text-secondary">
+                                                {{ $alt }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                             <p class="fs-5 text-secondary mb-0"><i
                                     class="bi bi-pen-fill me-2"></i>{{ $comic->author ?? 'Unknown Author' }}</p>
                         </div>

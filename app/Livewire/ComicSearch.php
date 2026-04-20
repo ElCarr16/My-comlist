@@ -18,6 +18,7 @@ class ComicSearch extends Component
     // Properti untuk Filter
     public $search = '';
     public $genre = '';
+    public $type = '';
     public $year = '';
     public $sort = 'latest';
     public $sortOrder = 'desc';
@@ -36,7 +37,7 @@ class ComicSearch extends Component
 
     public function resetFilters()
     {
-        $this->reset(['search', 'genre', 'year', 'sort', 'sortOrder']);
+        $this->reset(['search', 'genre', 'type', 'year', 'sort', 'sortOrder']);
     }
 
     public function toggleDirection()
@@ -45,7 +46,7 @@ class ComicSearch extends Component
         $this->resetPage();
     }
 
-    // FUNGSI BARU: Untuk memuat data komik ke dalam modal
+    // memuat data komik ke dalam modal
     public function openProgressModal($comicId)
     {
         $this->selected_comic = Comic::find($comicId);
@@ -102,7 +103,10 @@ class ComicSearch extends Component
 
         // Filter Search
         if ($this->search) {
-            $query->where('title', 'like', '%' . $this->search . '%');
+            $query->where(function ($q) {
+                $q->where('title', 'like', '%' . $this->search . '%')
+                    ->orWhere('alternative_titles', 'like', '%' . $this->search . '%');
+            });
         }
 
         // Filter Genre
@@ -110,6 +114,11 @@ class ComicSearch extends Component
             $query->whereHas('genres', function ($q) {
                 $q->where('genres.id', $this->genre);
             });
+        }
+
+        // Filter Tipe
+        if ($this->type) {
+            $query->where('type', $this->type);
         }
 
         // Filter Tahun

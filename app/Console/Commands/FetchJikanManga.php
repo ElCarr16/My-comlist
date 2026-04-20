@@ -12,7 +12,7 @@ class FetchJikanManga extends Command
 {
     // Bisa ambil 1 halaman: php artisan fetch:manga 7
     // Bisa ambil rentang: php artisan fetch:manga 1 5
-    protected $signature = 'fetch:manga {start=1} {end?}';
+    protected $signature = 'fetch:manga {start=1} {end?} {--type=}';
 
     protected $description = 'Mengumpulkan data Manga dari Jikan API berdasarkan jumlah halaman (1 Page = 25 Manga)';
 
@@ -20,17 +20,27 @@ class FetchJikanManga extends Command
     {
         $startPage = $this->argument('start');
         $endPage = $this->argument('end') ?? $startPage;
+
+        // 1. AMBIL OPSI TIPE DARI TERMINAL
+        $type = $this->option('type');
         $totalSaved = 0;
 
-        $this->info("Menarik data dari halaman $startPage sampai $endPage...");
+        // Bikin pesan info yang lebih dinamis
+        $tipeInfo = $type ? strtoupper($type) : 'SEMUA TIPE';
+        $this->info("Menarik data $tipeInfo dari halaman $startPage sampai $endPage...");
 
         for ($page = $startPage; $page <= $endPage; $page++) {
             $this->info("--- Mengambil Data Halaman $page ---");
 
             try {
+                // 2. MODIFIKASI URL UNTUK MENERIMA TIPE
                 $url = "https://api.jikan.moe/v4/top/manga?page={$page}";
 
-                // Timeout 60 detik agar tidak mudah putus (cURL error 28)
+                // Jika user memasukkan --type, tambahkan parameter ke URL
+                if ($type) {
+                    $url .= "&type={$type}";
+                }
+
                 $response = Http::timeout(60)->get($url);
 
                 if ($response->successful()) {
@@ -38,27 +48,36 @@ class FetchJikanManga extends Command
 
                     foreach ($mangas as $manga) {
 
-                        // 1. SIMPAN KOMIK BESERTA DATANYA SECARA LENGKAP
+                        // --- PROSES EKSTRAK JUDUL ALTERNATIF ---
+                        $altTitles = [];
+                        if (isset($manga['titles'])) {
+                            foreach ($manga['titles'] as $t) {
+                                if ($t['type'] !== 'Default') {
+                                    $altTitles[] = $t['title'];
+                                }
+                            }
+                        }
+                        $altTitlesString = implode(', ', $altTitles);
+                        // ---------------------------------------
+
                         $comic = Comic::updateOrCreate(
                             ['mal_id' => $manga['mal_id']],
                             [
-                                'title'         => $manga['title'],
-                                'slug'          => Str::slug($manga['title']) . '-' . rand(100, 999),
-                                'synopsis'      => $manga['synopsis'] ?? 'Belum ada sinopsis.',
-                                // Pastikan mengambil nama author pertama jika ada
-                                'author'        => isset($manga['authors'][0]['name']) ? $manga['authors'][0]['name'] : 'Unknown Author',
-                                'type'          => $manga['type'] ?? 'Manga',
-                                // Gunakan null jika tahun tidak ada agar MySQL year() tidak error
-                                'release_year'  => isset($manga['published']['prop']['from']['year']) ? intval($manga['published']['prop']['from']['year']) : null,
-                                'finish_year'   => isset($manga['published']['prop']['to']['year']) ? intval($manga['published']['prop']['to']['year']) : null,
-                                'cover_image'   => $manga['images']['jpg']['large_image_url'] ?? null,
-                                'status'        => $manga['status'] ?? 'Unknown',
-                                'total_chapter' => $manga['chapters'] ?? 0,
-                                'total_volume'  => $manga['volumes'] ?? 0,
+                                'title'              => $manga['title'],
+                                'alternative_titles' => $altTitlesString, // SIMPAN DI SINI
+                                'slug'               => Str::slug($manga['title']) . '-' . rand(100, 999),
+                                'synopsis'           => $manga['synopsis'] ?? 'Belum ada sinopsis.',
+                                'author'             => isset($manga['authors'][0]['name']) ? $manga['authors'][0]['name'] : 'Unknown Author',
+                                'type'               => $manga['type'] ?? 'Manga',
+                                'release_year'       => isset($manga['published']['prop']['from']['year']) ? intval($manga['published']['prop']['from']['year']) : null,
+                                'finish_year'        => isset($manga['published']['prop']['to']['year']) ? intval($manga['published']['prop']['to']['year']) : null,
+                                'cover_image'        => $manga['images']['webp']['image_url'] ?? null,
+                                'status'             => $manga['status'] ?? 'Unknown',
+                                'total_chapter'      => $manga['chapters'] ?? 0,
+                                'total_volume'       => $manga['volumes'] ?? 0,
                             ]
                         );
 
-                        // 2. SIMPAN DAN HUBUNGKAN GENRE
                         $genreIds = [];
                         if (isset($manga['genres'])) {
                             foreach ($manga['genres'] as $apiGenre) {
@@ -68,16 +87,12 @@ class FetchJikanManga extends Command
                         }
                         $comic->genres()->sync($genreIds);
 
-                        // 3. VALIDASI APAKAH BENAR-BENAR MASUK DB
                         if ($comic->id) {
                             $this->line("- Disimpan (ID DB: {$comic->id}): " . $manga['title']);
                             $totalSaved++;
-                        } else {
-                            $this->error("- Gagal menyimpan: " . $manga['title']);
                         }
                     }
 
-                    // Jeda waktu agar API Jikan tidak memblokir IP kita
                     if ($page < $endPage) {
                         $this->warn("Menunggu 2 detik sebelum pindah ke halaman berikutnya...");
                         sleep(2);
@@ -98,4 +113,5 @@ class FetchJikanManga extends Command
 command
  php artisan fetch:manga (number)
  php artisan fetch:manga 1 5
+ php artisan fetch:manga 1 2 --type=manhwa manga manhua
 */
