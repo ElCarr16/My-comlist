@@ -19,9 +19,8 @@ class ComicController extends Controller
         // 2. Filter Pencarian Judul
         if ($request->filled('search')) {
             $query->where('title', 'like', '%' . $request->search . '%')
-            ->orWhere('synopsis', 'like', '%' . $request->search . '%')
-            ->orWhere('author', 'like', '%' . $request->search . '%');
-
+                ->orWhere('synopsis', 'like', '%' . $request->search . '%')
+                ->orWhere('author', 'like', '%' . $request->search . '%');
         }
 
         // 3. Filter Kategori Genre
@@ -64,7 +63,11 @@ class ComicController extends Controller
 
     public function show(Comic $comic)
     {
-        $comic->load(['genres', 'likedByUsers']);
+        // Gunakan 'load' untuk relasi, 'loadAvg' untuk rata-rata, dan 'loadCount' untuk jumlah
+        $comic->load(['genres']);
+        $comic->loadAvg('users as avg_score', 'comic_user.score');
+        $comic->loadCount('likedByUsers');
+
         return view('comics.show', compact('comic'));
     }
 

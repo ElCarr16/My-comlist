@@ -86,32 +86,19 @@
 
                     <div class="mb-4 shadow-lg cover-wrapper">
                         @if ($comic->cover_image)
-                            <img src="{{ asset('storage/' . $comic->cover_image) }}" class="cover-image">
+                            {{-- Cek apakah gambarnya adalah Link dari API --}}
+                            @if (Str::startsWith($comic->cover_image, ['http://', 'https://']))
+                                <img src="{{ $comic->cover_image }}" class="cover-image">
+                            @else
+                                {{-- Jika bukan link, ambil dari folder lokal --}}
+                                <img src="{{ asset('storage/' . $comic->cover_image) }}" class="cover-image">
+                            @endif
                         @else
                             <div class="text-secondary" style="font-size: 1.2rem;">NO COVER</div>
                         @endif
                     </div>
 
-                    {{-- Tombol Like AJAX --}}
-                    <div id="like-container">
-                        @auth
-                            @php $isLiked = auth()->user()->likedComics->contains($comic->id); @endphp
-                            <div>
-                                <button wire:click="toggleLike"
-                                    class="btn {{ $isLiked ? 'btn-orange' : 'btn-dark border border-secondary text-white' }} w-100 py-3 fw-bold shadow-sm"
-                                    style="border-radius: 16px;">
-                                    <i class="bi {{ $isLiked ? 'bi-heart-fill' : 'bi-heart' }} me-2"></i>
-                                    {{ $likesCount }} Likes
-                                </button>
-                            </div>
-                        @else
-                            <a href="{{ route('login') }}"
-                                class="btn btn-dark border border-secondary text-white w-100 py-3 fw-bold"
-                                style="border-radius: 16px;">
-                                <i class="bi bi-heart me-2"></i> Login untuk Like
-                            </a>
-                        @endauth
-                    </div>
+                    <livewire:like-button :comic="$comic" />
                 </div>
             </div>
 
@@ -126,14 +113,12 @@
                             <p class="fs-5 text-secondary mb-0"><i
                                     class="bi bi-pen-fill me-2"></i>{{ $comic->author ?? 'Unknown Author' }}</p>
                         </div>
-
-                        <div class="text-end bg-dark px-4 py-2" style="border-radius: 16px; border: 1px solid #333;">
-                            <span class="fs-3 fw-bold text-warning d-block">
-                                <i class="bi bi-star-fill me-1"></i>
-                                {{ $comic->users_avg_comic_userscore ? number_format($comic->users_avg_comic_userscore, 1) : '0.0' }}
+                        <div class="rating-box">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <span class="fs-4 fw-bold">
+                                {{ number_format($comic->avg_score ?? 0, 1) }}
                             </span>
-                            <small class="text-secondary text-uppercase"
-                                style="letter-spacing: 1px; font-size: 0.7rem;">Rating</small>
+                            <div class="small text-secondary">RATING</div>
                         </div>
                     </div>
                 </div>
@@ -218,10 +203,12 @@
                                     <div class="input-group">
                                         <input type="number" name="last_read_chapter"
                                             class="form-control filter-input py-2 border-end-0"
-                                            value="{{ $tracked->pivot->last_read_chapter ?? 0 }}"
-                                            max="{{ $comic->total_chapter }}" min="0">
-                                        <span class="input-group-text bg-dark text-secondary border-dark border-start-0 py-2">/
-                                            {{ $comic->total_chapter }}</span>
+                                            @if ($comic->total_chapter > 0) max="{{ $comic->total_chapter }}" @endif
+                                            min="0" placeholder="0">
+                                        {{-- '/' dan logika '?' untuk komik on-going --}}
+                                        <span class="input-group-text bg-dark text-secondary border-dark border-start-0 py-2">
+                                            / {{ $comic->total_chapter > 0 ? $comic->total_chapter : '?' }}
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -241,32 +228,6 @@
     </div>
 
     <script>
-        // AJAX Like
-        function toggleLikeDetail(id, el) {
-            fetch(`/comics/${id}/like`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    const icon = el.querySelector('i');
-                    const count = el.querySelector('.likes-count');
-                    if (data.isLiked) {
-                        el.classList.replace('btn-dark', 'btn-orange');
-                        el.classList.remove('border', 'border-secondary', 'text-white');
-                        icon.classList.replace('bi-heart', 'bi-heart-fill');
-                    } else {
-                        el.classList.replace('btn-orange', 'btn-dark');
-                        el.classList.add('border', 'border-secondary', 'text-white');
-                        icon.classList.replace('bi-heart-fill', 'bi-heart');
-                    }
-                    count.textContent = data.likesCount;
-                });
-        }
-
         // Toggle Sinopsis
         const toggleBtn = document.getElementById('toggle-synopsis');
         const synopsisText = document.getElementById('synopsis-text');

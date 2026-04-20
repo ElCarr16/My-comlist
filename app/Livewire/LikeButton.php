@@ -1,3 +1,5 @@
+<?php
+
 namespace App\Livewire;
 
 use Livewire\Component;
@@ -5,15 +7,18 @@ use App\Models\Comic;
 
 class LikeButton extends Component
 {
-    public $comic; // Kita butuh variabel komik
-    public $isLiked;
-    public $likesCount;
+    public Comic $comic;
+    public $isLiked = false;
+    public $likesCount = 0;
 
-    // Mount dijalankan sekali saat komponen pertama kali dimuat
     public function mount(Comic $comic)
     {
         $this->comic = $comic;
-        $this->isLiked = auth()->user()->likedComics->contains($comic->id);
+
+        if (auth()->check()) {
+            $this->isLiked = auth()->user()->likedComics->contains($comic->id);
+        }
+
         $this->likesCount = $comic->likedByUsers()->count();
     }
 
@@ -25,16 +30,15 @@ class LikeButton extends Component
 
         $user = auth()->user();
 
-        if ($user->likedComics->contains($this->comic->id)) {
+        if ($this->isLiked) {
             $user->likedComics()->detach($this->comic->id);
             $this->isLiked = false;
+            $this->likesCount--;
         } else {
             $user->likedComics()->attach($this->comic->id);
             $this->isLiked = true;
+            $this->likesCount++;
         }
-
-        // Update count otomatis
-        $this->likesCount = $this->comic->likedByUsers()->count();
     }
 
     public function render()

@@ -119,7 +119,7 @@
                                         <div
                                             style="width: 80px; height: 110px; border-radius: 10px; overflow: hidden; background: #111; border: 1px solid #333;">
                                             @if ($comic->cover_image)
-                                                <img src="{{ asset('storage/' . $comic->cover_image) }}" class="w-100 h-100"
+                                                <img src="{{ $comic->cover_image }}" class="w-100 h-100"
                                                     style="object-fit:cover;">
                                             @else
                                                 <div class="w-100 h-100 d-flex align-items-center justify-content-center text-secondary"
@@ -191,8 +191,8 @@
 
                                     {{-- COVER --}}
                                     <a href="{{ route('comics.show', $comic->slug) }}" class="text-decoration-none">
-                                        @if ($comic->cover_image)
-                                            <img src="{{ asset('storage/' . $comic->cover_image) }}" class="w-100"
+                                        @if (Str::startsWith($comic->cover_image, ['http://', 'https://']))
+                                            <img src="{{ $comic->cover_image }}" class="w-100"
                                                 style="height:240px; object-fit:cover;">
                                         @else
                                             <div class="bg-dark d-flex align-items-center justify-content-center text-secondary"

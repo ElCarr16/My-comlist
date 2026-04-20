@@ -27,6 +27,16 @@ class User extends Authenticatable
         'profile_image',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            // Jika user_name tidak diisi, isi otomatis dengan name
+            if (empty($user->user_name)) {
+                $user->user_name = $user->name;
+            }
+        });
+    }
+    
     /**
      * The attributes that should be hidden for serialization.
      *

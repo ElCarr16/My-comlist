@@ -12,6 +12,7 @@ class Comic extends Model
     // Melindungi ID, sisanya boleh diisi massal
     protected $guarded = ['id'];
     protected $fillable = [
+        'mal_id',
         'title',
         'slug',
         'synopsis',
