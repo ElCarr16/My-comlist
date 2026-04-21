@@ -11,20 +11,15 @@ class ComicController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Menghitung Like manual dan Rating dari tracker
-        $query = Comic::with('genres')
+        // 1. Inisialisasi Query
+        $query = Comic::query()
+            ->with('genres')
             ->withCount('likedByUsers')
-            ->withAvg('users', 'comic_user.score');
+            ->withAvg('users as local_avg_score', 'comic_user.score');
 
-        // 2. Filter Pencarian Judul, Sinopsis, dan Penulis (Versi Controller Biasa)
-
-        // Cek apakah user mengetik sesuatu di URL (?search=...)
+        // 2. Filter Pencarian
         if ($request->filled('search')) {
-
-            // Ambil kata kunci dari $request, ubah ke huruf kecil, dan tambah %
             $searchTerm = '%' . strtolower($request->search) . '%';
-
-            // Bungkus dalam function($q) agar tidak merusak filter Genre/Tipe
             $query->where(function ($q) use ($searchTerm) {
                 $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
                     ->orWhereRaw('LOWER(synopsis) LIKE ?', [$searchTerm])
@@ -33,35 +28,34 @@ class ComicController extends Controller
             });
         }
 
-        // 3. Filter Kategori Genre
+        // 3. Filter Genre
         if ($request->filled('genre')) {
             $query->whereHas('genres', function ($q) use ($request) {
                 $genre = $request->genre;
-                if (is_array($genre)) {
-                    $q->whereIn('genres.id', $genre);
-                } else {
-                    $q->where('genres.id', $genre);
-                }
+                is_array($genre) ? $q->whereIn('genres.id', $genre) : $q->where('genres.id', $genre);
             });
         }
 
-        // 4. Filter Tahun Rilis
+        // 4. Filter Tahun
         if ($request->filled('year')) {
             $query->where('release_year', $request->year);
         }
 
-        // 5. Fitur Pengurutan (Sorting)
+        // 5. Fitur Pengurutan Gabungan (Rating & Popularitas)
         $sort = $request->input('sort', 'latest');
 
         switch ($sort) {
-            case 'oldest':
-                $query->orderBy('created_at', 'asc');
-                break;
             case 'popular':
-                $query->orderBy('liked_by_users_count', 'desc');
+                // (MAL Favorites + Lokal Likes)
+                $query->orderByRaw('(COALESCE(mal_favorites, 0) + liked_by_users_count) DESC');
                 break;
             case 'rating':
-                $query->orderBy('users_avg_comic_user_score', 'desc');
+                // (MAL Score + Lokal Avg) / 2
+                $query->orderByRaw('(COALESCE(mal_score, 0) + COALESCE(local_avg_score, 0)) / 
+                                   (CASE WHEN mal_score > 0 AND local_avg_score > 0 THEN 2 ELSE 1 END) DESC');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
                 break;
             case 'latest':
             default:
@@ -77,7 +71,6 @@ class ComicController extends Controller
 
     public function show(Comic $comic)
     {
-        // Gunakan 'load' untuk relasi, 'loadAvg' untuk rata-rata, dan 'loadCount' untuk jumlah
         $comic->load(['genres']);
         $comic->loadAvg('users as avg_score', 'comic_user.score');
         $comic->loadCount('likedByUsers');
@@ -85,22 +78,17 @@ class ComicController extends Controller
         return view('comics.show', compact('comic'));
     }
 
-    // 6. Fungsi Like dengan AJAX (JSON) dan Auth Facade
     public function toggleLike(Comic $comic)
     {
-        // Menggunakan Auth::check() agar VS Code tidak error
         if (!Auth::check()) {
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
-        // Toggle: Jika belum Like jadi Like, jika sudah Like jadi Unlike
         Auth::user()->likedComics()->toggle($comic->id);
 
-        // Ambil data terbaru untuk dikirim ke JavaScript di tampilan depan
         $isLiked = Auth::user()->likedComics()->where('comics.id', $comic->id)->exists();
         $likesCount = $comic->likedByUsers()->count();
 
-        // Mengembalikan data JSON agar halaman tidak reload (Mulus!)
         return response()->json([
             'isLiked' => $isLiked,
             'likesCount' => $likesCount
