@@ -5,7 +5,6 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Comic;
 use App\Models\Genre;
-use App\Models\ComicUser; // Tambahkan ini jika kamu punya model pivot
 use Illuminate\Support\Facades\Auth;
 use Livewire\WithPagination;
 
@@ -15,29 +14,33 @@ class ComicSearch extends Component
 
     protected $paginationTheme = 'bootstrap';
 
-    // Properti untuk Filter
     public $search = '';
-    public $genre = '';
+    public $selectedGenres = [];
+    public $filterStatus = '';
     public $type = '';
     public $year = '';
     public $sort = 'latest';
     public $sortOrder = 'desc';
 
-    // Properti untuk Modal Update Progress
-    public $selected_comic; // Untuk menyimpan data komik yang sedang diedit
+    // Diperbaiki: Menambahkan ?Comic agar tidak error diubah ke array oleh Livewire 3
+    public ?Comic $selected_comic = null;
     public $last_read_chapter = 0;
     public $status = 'reading';
     public $score = 10;
 
-    // Reset halaman ke 1 setiap kali filter berubah
-    public function updating($property)
+    // Listener agar Paginasi/UI Search langsung memuat ulang data saat Like ditekan
+    protected $listeners = ['likeUpdated' => '$refresh'];
+
+    public function applyFilters()
     {
+        // Fungsi ini dipanggil oleh tombol Hijau (Terapkan)
         $this->resetPage();
     }
 
     public function resetFilters()
     {
-        $this->reset(['search', 'genre', 'type', 'year', 'sort', 'sortOrder']);
+        $this->reset(['search', 'selectedGenres', 'filterStatus', 'type', 'year', 'sort', 'sortOrder']);
+        $this->resetPage();
     }
 
     public function toggleDirection()
@@ -46,13 +49,14 @@ class ComicSearch extends Component
         $this->resetPage();
     }
 
-    // memuat data komik ke dalam modal
     public function openProgressModal($comicId)
     {
-        $this->selected_comic = Comic::find($comicId);
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
 
-        // Ambil data progress user saat ini jika ada
-        $userProgress = Auth::user()->comics()->where('comic_id', $comicId)->first();
+        $this->selected_comic = Comic::find($comicId);
+        $userProgress = Auth::user()->trackedComics()->where('comics.id', $comicId)->first();
 
         if ($userProgress) {
             $this->last_read_chapter = $userProgress->pivot->last_read_chapter;
@@ -65,7 +69,6 @@ class ComicSearch extends Component
 
     public function updateProgress()
     {
-        // Pastikan user sudah login
         if (!Auth::check()) return redirect()->route('login');
 
         $rules = [
@@ -74,15 +77,13 @@ class ComicSearch extends Component
             'score' => 'nullable|integer|min:1|max:10',
         ];
 
-        // Validasi MAX chapter jika total_chapter diketahui (> 0)
         if ($this->selected_comic && $this->selected_comic->total_chapter > 0) {
             $rules['last_read_chapter'] .= '|max:' . $this->selected_comic->total_chapter;
         }
 
         $this->validate($rules);
 
-        // Simpan ke tabel pivot comic_user
-        Auth::user()->comics()->syncWithoutDetaching([
+        Auth::user()->trackedComics()->syncWithoutDetaching([
             $this->selected_comic->id => [
                 'reading_status' => $this->status,
                 'last_read_chapter' => $this->last_read_chapter,
@@ -91,7 +92,7 @@ class ComicSearch extends Component
             ]
         ]);
 
-        $this->dispatch('closeModal'); // Kirim sinyal untuk tutup modal di browser
+        $this->dispatch('closeModal');
         session()->flash('message', 'Progress berhasil diperbarui!');
     }
 
@@ -101,51 +102,60 @@ class ComicSearch extends Component
             ->withCount('likedByUsers')
             ->withAvg('users as avg_score', 'comic_user.score');
 
-        // 1. Filter Search (Diperbarui untuk PostgreSQL)
+        // Filter Pencarian
         if (!empty($this->search)) {
             $searchTerm = '%' . strtolower($this->search) . '%';
             $query->where(function ($q) use ($searchTerm) {
-                // Menggunakan LOWER agar kebal terhadap huruf besar/kecil
                 $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
                     ->orWhereRaw('LOWER(alternative_titles) LIKE ?', [$searchTerm]);
             });
         }
 
-        // 2. Filter Genre (Kode aslimu sudah BENAR, biarkan saja)
-        if ($this->genre) {
+        // PERBAIKAN LOGIKA GENRE: Menjadi OR (Pilih Action/Romance, munculkan yang punya salah satu)
+        if (!empty($this->selectedGenres)) {
             $query->whereHas('genres', function ($q) {
-                $q->where('genres.id', $this->genre);
-            });
+                $q->whereIn('genres.id', $this->selectedGenres);
+            }); // <-- Syarat count() dihapus agar tidak terlalu ketat
         }
 
-        // 3. Filter Tipe (Diperbarui untuk PostgreSQL)
+        if (!empty($this->filterStatus)) {
+            $query->whereRaw('TRIM(status) = ?', [$this->filterStatus]);
+        }
+
         if (!empty($this->type)) {
-            // Paksa mengubah database dan inputan menjadi huruf kecil semua saat dicocokkan
             $query->whereRaw('LOWER(type) = ?', [strtolower($this->type)]);
         }
 
-        // 4. Filter Tahun (Aman, karena angka)
         if ($this->year) {
             $query->where('release_year', $this->year);
         }
 
-        // Logika Sorting & Urutan
         $direction = $this->sortOrder;
-
-        if ($this->sort == 'popular') {
-            $query->orderBy('liked_by_users_count', $direction);
-        } elseif ($this->sort == 'rating') {
-            $query->orderBy('avg_score', $direction);
-        } elseif ($this->sort == 'name') {
-            $query->orderBy('title', $direction);
-        } else {
-            // Gunakan release_year karena itu kolom yang benar di tabel kamu
-            $query->orderBy('release_year', $direction)->orderBy('created_at', $direction);
+        switch ($this->sort) {
+            case 'popular':
+                $query->orderBy('liked_by_users_count', $direction);
+                break;
+            case 'rating':
+                $query->orderBy('avg_score', $direction);
+                break;
+            case 'name':
+                $query->orderBy('title', $direction);
+                break;
+            default:
+                $query->orderBy('release_year', $direction)->orderBy('created_at', $direction);
+                break;
         }
 
         return view('livewire.comic-search', [
-            'comics' => $query->paginate(12),
-            'genres' => Genre::orderBy('name', 'asc')->get()
+            'comics' => $query->paginate(24),
+            'genres' => Genre::orderBy('name', 'asc')->get(),
+            'statusOptions' => Comic::distinct()
+                ->whereNotNull('status')
+                ->where('status', '!=', '')
+                ->pluck('status')
+                ->map(fn($item) => trim($item))
+                ->unique()
+                ->sort()
         ]);
     }
 }

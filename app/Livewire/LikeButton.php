@@ -16,7 +16,8 @@ class LikeButton extends Component
         $this->comic = $comic;
 
         if (auth()->check()) {
-            $this->isLiked = auth()->user()->likedComics->contains($comic->id);
+            // Diperbaiki: Gunakan Query langsung agar tidak memenuhi RAM memori server
+            $this->isLiked = auth()->user()->likedComics()->where('comics.id', $comic->id)->exists();
         }
 
         $this->likesCount = $comic->likedByUsers()->count();
@@ -24,12 +25,9 @@ class LikeButton extends Component
 
     public function toggleLike()
     {
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
+        if (!auth()->check()) return redirect()->route('login');
 
         $user = auth()->user();
-
         if ($this->isLiked) {
             $user->likedComics()->detach($this->comic->id);
             $this->isLiked = false;
@@ -39,8 +37,10 @@ class LikeButton extends Component
             $this->isLiked = true;
             $this->likesCount++;
         }
-    }
 
+        // Dispatch event agar parent tahu ada perubahan (opsional)
+        $this->dispatch('likeUpdated');
+    }
     public function render()
     {
         return view('livewire.like-button');

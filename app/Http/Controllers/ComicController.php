@@ -36,7 +36,12 @@ class ComicController extends Controller
         // 3. Filter Kategori Genre
         if ($request->filled('genre')) {
             $query->whereHas('genres', function ($q) use ($request) {
-                $q->where('genres.id', $request->genre);
+                $genre = $request->genre;
+                if (is_array($genre)) {
+                    $q->whereIn('genres.id', $genre);
+                } else {
+                    $q->where('genres.id', $genre);
+                }
             });
         }
 
@@ -56,8 +61,7 @@ class ComicController extends Controller
                 $query->orderBy('liked_by_users_count', 'desc');
                 break;
             case 'rating':
-                // Diperbaiki: tanpa garis bawah sebelum kata score
-                $query->orderBy('users_avg_comic_userscore', 'desc');
+                $query->orderBy('users_avg_comic_user_score', 'desc');
                 break;
             case 'latest':
             default:
@@ -93,7 +97,7 @@ class ComicController extends Controller
         Auth::user()->likedComics()->toggle($comic->id);
 
         // Ambil data terbaru untuk dikirim ke JavaScript di tampilan depan
-        $isLiked = Auth::user()->likedComics->contains($comic->id);
+        $isLiked = Auth::user()->likedComics()->where('comics.id', $comic->id)->exists();
         $likesCount = $comic->likedByUsers()->count();
 
         // Mengembalikan data JSON agar halaman tidak reload (Mulus!)

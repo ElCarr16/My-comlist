@@ -17,6 +17,9 @@
     {{-- SLOT UNTUK CSS KHUSUS HALAMAN (PENTING!) --}}
     @yield('styles')
 
+    {{-- WAJIB: STYLE DARI LIVEWIRE --}}
+    @livewireStyles
+
     <style>
         /* BASE STYLES */
         body {
@@ -93,6 +96,44 @@
             background-color: #ff4d00;
             border-color: #ff4d00;
         }
+
+        /* Desain Card Komik Minimalis */
+        .comic-card {
+            background-color: #121212;
+            /* Hitam yang lebih pekat & bersih */
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            border-radius: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .comic-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .comic-image-wrapper {
+            border-radius: 18px 18px 0 0;
+            overflow: hidden;
+        }
+
+        .comic-cover {
+            transition: transform 0.5s ease;
+        }
+
+        .comic-card:hover .comic-cover {
+            transform: scale(1.08);
+            /* Efek zoom halus pada gambar */
+        }
+
+        .glass-badge {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            /* Efek kaca */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 
@@ -117,12 +158,16 @@
 
                     @guest
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
                                 <i class="bi bi-person-circle fs-5"></i>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-dark border-secondary shadow-lg mt-2">
-                                <li><a class="dropdown-item py-2" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right me-2"></i> Sign In</a></li>
-                                <li><a class="dropdown-item py-2" href="{{ route('register') }}"><i class="bi bi-person-plus me-2"></i> Sign Up</a></li>
+                            <ul
+                                class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-dark border-secondary shadow-lg mt-2">
+                                <li><a class="dropdown-item py-2" href="{{ route('login') }}"><i
+                                            class="bi bi-box-arrow-in-right me-2"></i> Sign In</a></li>
+                                <li><a class="dropdown-item py-2" href="{{ route('register') }}"><i
+                                            class="bi bi-person-plus me-2"></i> Sign Up</a></li>
                             </ul>
                         </li>
                     @else
@@ -160,9 +205,12 @@
         @yield('content')
     </main>
 
-    {{-- SCRIPT --}}
+    {{-- SCRIPT BOOTSTRAP & CUSTOM SCRIPTS --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     @yield('scripts')
+
+    {{-- WAJIB: SCRIPT DARI LIVEWIRE (Harus diletakkan sebelum tag body tertutup) --}}
+    @livewireScripts
 </body>
 
 </html>

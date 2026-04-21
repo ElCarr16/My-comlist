@@ -20,7 +20,7 @@ class TrackerController extends Controller
         $user = Auth::user();
 
         // 2. Logika Cerdas: Cek apakah user sudah pernah menambahkan komik ini sebelumnya
-        if ($user->trackedComics()->where('comic_id', $comicId)->exists()) {
+        if ($user->trackedComics()->where('comics.id', $comicId)->exists()) {
             // Jika SUDAH ADA di My List, kita UPDATE nilainya (termasuk skor terbarunya)
             $user->trackedComics()->updateExistingPivot($comicId, [
                 'reading_status'    => $request->reading_status,
