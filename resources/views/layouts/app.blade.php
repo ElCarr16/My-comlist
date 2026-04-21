@@ -176,8 +176,19 @@
                             <a class="nav-link dropdown-toggle text-white fw-bold d-flex align-items-center gap-2"
                                 href="#" id="userMenu" role="button" data-bs-toggle="dropdown"
                                 style="text-transform: none;">
-                                <i class="bi bi-person-circle fs-5"></i> {{ Auth::user()->user_name ?? Auth::user()->name }}
+
+                                {{-- KODE NAVBAR AVATAR --}}
+                                @if (Auth::user()->profile_image)
+                                    <img src="{{ route('profile.image.view', basename(Auth::user()->profile_image)) }}"
+                                        class="rounded-circle"
+                                        style="width: 28px; height: 28px; object-fit: cover; border: 1px solid #ff4d00;">
+                                @else
+                                    <i class="bi bi-person-circle fs-5"></i>
+                                @endif
+
+                                {{ Auth::user()->user_name ?? Auth::user()->name }}
                             </a>
+
                             <ul
                                 class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-dark border-secondary shadow-lg mt-2">
                                 <li><a class="dropdown-item py-2" href="{{ route('user.profile') }}"><i
