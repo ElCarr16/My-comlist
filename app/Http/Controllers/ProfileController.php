@@ -39,11 +39,15 @@ class ProfileController extends Controller
         $user->name = $request->name;
         $user->user_name = $request->user_name;
 
+        // PERUBAHAN DI SINI: Menghapus kata 'public'
         if ($request->hasFile('profile_image')) {
             if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
+                // Berubah dari Storage::disk('public')->delete(...)
+                Storage::delete($user->profile_image);
             }
-            $path = $request->file('profile_image')->store('profiles', 'public');
+
+            // Berubah dari ->store('profiles', 'public')
+            $path = $request->file('profile_image')->store('profiles');
             $user->profile_image = $path;
         }
 
