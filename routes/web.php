@@ -59,3 +59,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/tracker/{comic}', [TrackerController::class, 'update'])->name('tracker.update');
     Route::post('/comics/{comic}/like', [ComicController::class, 'toggleLike'])->name('comics.like');
 });
+
+// panggil profile pict
+Route::get('/storage/profiles/{filename}', function ($filename) {
+    $path = storage_path('app/public/profiles/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path);
+})->name('profile.image.view');

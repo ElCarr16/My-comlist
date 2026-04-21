@@ -19,8 +19,11 @@
             <div class="card-custom p-4 text-center text-white mb-4">
                 <div class="mb-4">
                     @if ($user->profile_image)
-                        <img src="{{ Storage::url($user->profile_image) }}" class="rounded-circle shadow-sm"
-                            style="width:120px;height:120px;object-fit:cover; border: 3px solid #ff4d00;">
+                        {{-- Kita memanggil rute view foto, bukan path langsung --}}
+                        <img src="{{ route('profile.image.view', basename($user->profile_image)) }}"
+                            class="rounded-circle shadow-sm"
+                            style="width:120px;height:120px;object-fit:cover; border: 3px solid #ff4d00;"
+                            onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($user->name) }}';">
                     @else
                         <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
                             style="width:120px;height:120px;background:#222;font-size:40px; border: 3px solid #ff4d00;">
@@ -32,7 +35,7 @@
                 <h5 class="fw-bold mb-1">{{ $user->user_name ? '@' . $user->user_name : $user->name }}</h5>
                 <p class="text-white-50 small mb-4"><i class="bi bi-envelope"></i> {{ $user->email }}</p>
 
-                {{-- STATISTIK (DITAMBAHKAN) --}}
+                {{-- STATISTIK --}}
                 <div class="row g-2 mb-4">
                     <div class="col-4">
                         <div class="p-2 bg-dark rounded-3 border border-secondary">
@@ -59,7 +62,7 @@
                 </a>
             </div>
 
-            {{-- KOMIK TERAKHIR (DITAMBAHKAN) --}}
+            {{-- KOMIK TERAKHIR --}}
             <h6 class="text-white-50 fw-bold mb-3 px-2">Aktivitas Terakhir</h6>
             <div class="card-custom bg-dark p-3">
                 @forelse($user->comics()->latest()->limit(3)->get() as $comic)

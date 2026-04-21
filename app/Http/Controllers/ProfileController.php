@@ -34,7 +34,7 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-        $user = Auth::user();
+        $user = \Illuminate\Support\Facades\Auth::user();
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -46,16 +46,13 @@ class ProfileController extends Controller
         $user->user_name = $request->user_name;
 
         if ($request->hasFile('profile_image')) {
-            // 1. Hapus foto lama jika ada
+            // Hapus foto lama jika ada
             if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_image);
             }
 
-            // 2. Simpan ke 'profiles' di disk 'public'
-            // Hasilnya akan masuk ke storage/app/public/profiles
+            // Simpan ke storage/app/public/profiles
             $path = $request->file('profile_image')->store('profiles', 'public');
-
-            // 3. Simpan path-nya ke database
             $user->profile_image = $path;
         }
 
