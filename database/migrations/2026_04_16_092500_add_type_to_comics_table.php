@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::table('comics', function (Blueprint $table) {
             // Menambahkan kolom type setelah kolom author
-            $table->enum('type', ['manga', 'manhwa', 'manhua', 'oneshot'])
-                ->default('manga')
-                ->after('author');
+            // $table->enum('type', ['manga', 'manhwa', 'manhua', 'oneshot'])
+            //     ->default('manga')
+            //     ->after('author');
+            // KODE BARU (Aman untuk Postgres)
+            $table->string('type')->nullable();
         });
     }
 
