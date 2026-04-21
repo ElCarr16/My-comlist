@@ -115,7 +115,7 @@
                             <span class="position-absolute top-0 start-0 m-2 px-2 py-1 rounded-pill text-white z-1"
                                 style="background: rgba(0, 0, 0, 0.6); font-size: 0.8rem; font-weight: 700; backdrop-filter: blur(2px);">
                                 <i
-                                    class="bi bi-star-fill text-warning me-1"></i>{{ $comic->avg_score ? number_format($comic->avg_score, 1) : '0.0' }}
+                                    class="bi bi-star-fill text-warning me-1"></i>{{ $comic->combined_score ? number_format($comic->combined_score, 1) : '0.0' }}
                             </span>
 
                             {{-- GAMBAR COVER --}}

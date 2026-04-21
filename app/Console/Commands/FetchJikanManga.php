@@ -75,6 +75,8 @@ class FetchJikanManga extends Command
                                 'status'             => $manga['status'] ?? 'Unknown',
                                 'total_chapter'      => $manga['chapters'] ?? 0,
                                 'total_volume'       => $manga['volumes'] ?? 0,
+                                'mal_score'          => $manga['score'] ?? null,
+                                'mal_favorites'      => $manga['favorites'] ?? 0,
                             ]
                         );
 

@@ -16,30 +16,30 @@ class LikeButton extends Component
         $this->comic = $comic;
 
         if (auth()->check()) {
-            // Diperbaiki: Gunakan Query langsung agar tidak memenuhi RAM memori server
-            $this->isLiked = auth()->user()->likedComics()->where('comics.id', $comic->id)->exists();
+            $this->isLiked = auth()->user()->likedComics->contains($comic->id);
         }
 
-        $this->likesCount = $comic->likedByUsers()->count();
+        // Panggil accessor yang kita buat di Model
+        $this->likesCount = $comic->total_likes;
     }
 
     public function toggleLike()
     {
-        if (!auth()->check()) return redirect()->route('login');
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
 
         $user = auth()->user();
+
         if ($this->isLiked) {
             $user->likedComics()->detach($this->comic->id);
             $this->isLiked = false;
-            $this->likesCount--;
+            $this->likesCount--; // Kurangi langsung di UI
         } else {
             $user->likedComics()->attach($this->comic->id);
             $this->isLiked = true;
-            $this->likesCount++;
+            $this->likesCount++; // Tambah langsung di UI
         }
-
-        // Dispatch event agar parent tahu ada perubahan (opsional)
-        $this->dispatch('likeUpdated');
     }
     public function render()
     {

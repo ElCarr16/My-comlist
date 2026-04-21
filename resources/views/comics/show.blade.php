@@ -128,7 +128,7 @@
                         <div class="rating-box">
                             <i class="bi bi-star-fill text-warning"></i>
                             <span class="fs-4 fw-bold">
-                                {{ number_format($comic->avg_score ?? 0, 1) }}
+                                {{ number_format($comic->combined_score ?? 0, 1) }}
                             </span>
                             <div class="small text-secondary">RATING</div>
                         </div>
