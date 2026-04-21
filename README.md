@@ -1,59 +1,79 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MyComList
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+MyComList adalah sebuah platform web berbasis Laravel yang memungkinkan pengguna untuk melacak, menilai, dan mengelola daftar komik atau manga yang mereka baca (terinspirasi dari platform seperti MyAnimeList).
 
-## About Laravel
+## Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+-   **Manajemen Profil Pengguna**: Pengguna dapat mengubah nama pengguna, nama lengkap, dan mengunggah foto profil (avatar).
+-   **Pelacakan Komik**: Pengguna dapat memberikan status bacaan pada komik (contoh: _reading_, _completed_, _dropped_, _plan_to_read_), memberikan rating, dan menandai bab terakhir yang dibaca.
+-   **Interaksi Sosial**: Fitur "Suka" (Like) pada komik.
+-   **Data Dummy / Seeder**: Dilengkapi dengan custom command untuk mengacak perilaku (_behavior_) dari user dummy agar data terlihat lebih realistis saat pengembangan.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Persyaratan Sistem
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Pastikan sistem Anda memenuhi persyaratan minimum berikut sebelum menginstal aplikasi ini:
 
-## Learning Laravel
+-   PHP >= 8.1
+-   Composer
+-   Database MySQL / MariaDB (via XAMPP, Laragon, dll)
+-   Node.js & NPM (untuk kompilasi aset frontend)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Panduan Instalasi
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Ikuti langkah-langkah di bawah ini untuk menjalankan proyek secara lokal:
 
-## Laravel Sponsors
+1.  **Kloning Repositori** (atau ekstrak folder proyek Anda):
+    ```bash
+    git clone <url-repositori-anda> My-comlist
+    cd My-comlist
+    ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2.  **Instalasi Dependensi PHP**:
+    ```bash
+    composer install
+    ```
 
-### Premium Partners
+3.  **Instalasi Dependensi Node & Kompilasi Aset**:
+    ```bash
+    npm install
+    npm run build
+    ```
+    *(Gunakan `npm run dev` jika sedang dalam tahap pengembangan aktif)*
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+4.  **Konfigurasi Environment**:
+    Duplikat file `.env.example` dan ubah namanya menjadi `.env`:
+    ```bash
+    cp .env.example .env
+    ```
+    Buka file `.env` dan sesuaikan kredensial database Anda:
+    ```env
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=MyComList
+    DB_USERNAME=root
+    DB_PASSWORD=
+    ```
 
-## Contributing
+5.  **Generate Application Key**:
+    ```bash
+    php artisan key:generate
+    ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+6.  **Migrasi Database dan Seeding**:
+    ```bash
+    php artisan migrate --seed
+    ```
 
-## Code of Conduct
+7.  **Jalankan Server Lokal**:
+    ```bash
+    php artisan serve
+    ```
+    Aplikasi sekarang dapat diakses melalui `http://localhost:8000`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Custom Artisan Commands
 
-## Security Vulnerabilities
+Aplikasi ini memiliki command kustom bawaan untuk membantu pengembangan, terutama dalam menguji interaksi user:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+-   `php artisan user:randomize-behavior`
+    Command ini akan mengacak ulang interaksi (seperti memberikan "like", status membaca, dan rating) untuk semua akun pengguna _dummy_ (pengguna dengan email `@example.*`) secara realistis tanpa menghapus akun mereka.
