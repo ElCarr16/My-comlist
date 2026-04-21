@@ -134,6 +134,23 @@
             font-weight: 600;
             letter-spacing: 0.5px;
         }
+
+        /* FOOTER */
+        footer {
+            background-color: #0a0a0a;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-icon {
+            color: #888;
+            font-size: 1.2rem;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .footer-icon:hover {
+            color: #ff4d00;
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 
@@ -215,6 +232,21 @@
     <main class="flex-grow-1">
         @yield('content')
     </main>
+
+    {{-- FOOTER --}}
+    <footer class="mt-auto py-4 text-center">
+        <div class="container">
+            <div class="d-flex justify-content-center gap-4 mb-3">
+                <a href="#" class="footer-icon"><i class="bi bi-twitter-x"></i></a>
+                <a href="#" class="footer-icon"><i class="bi bi-instagram"></i></a>
+                <a href="#" class="footer-icon"><i class="bi bi-discord"></i></a>
+                <a href="https://x.com/Dckxx1" class="footer-icon"><i class="bi bi-github"></i></a>
+            </div>
+            <p class="text-secondary mb-0" style="font-size: 0.85rem;">
+                &copy; {{ date('Y') }} <span class="text-white fw-semibold">MyComList</span>. All rights reserved.
+            </p>
+        </div>
+    </footer>
 
     {{-- SCRIPT BOOTSTRAP & CUSTOM SCRIPTS --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

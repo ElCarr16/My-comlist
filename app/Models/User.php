@@ -26,13 +26,27 @@ class User extends Authenticatable
         'role',      // Ditambahkan agar bisa memberikan akses admin
         'profile_image',
     ];
-
+    
     protected static function booted()
     {
         static::creating(function ($user) {
-            // Jika user_name tidak diisi, isi otomatis dengan name
+            // Jika user_name kosong, isi dengan name
             if (empty($user->user_name)) {
                 $user->user_name = $user->name;
+            }
+
+            // PROTEKSI TAMBAHAN: Jika profile_image tidak ada saat create, 
+            // jangan biarkan ia jadi NULL jika ada default (opsional)
+            if (is_null($user->profile_image)) {
+                $user->profile_image = null; // Tetap null tapi aman
+            }
+        });
+
+        static::updating(function ($user) {
+            // Jika profil image sedang diupdate ke NULL padahal sebelumnya ada isinya,
+            // batalkan perubahan tersebut.
+            if ($user->isDirty('profile_image') && is_null($user->profile_image)) {
+                $user->profile_image = $user->getOriginal('profile_image');
             }
         });
     }
