@@ -12,12 +12,14 @@ return new class extends Migration
             // Menambah kolom tahun
             $table->year('release_year')->nullable()->after('type');
             $table->year('finish_year')->nullable()->after('release_year');
+            // untuk postgre:
+            $table->string('status')->default('on-going')->change();
 
             // Memperbarui opsi enum status (menambah 'dropped' dan 'dikapak')
             // Catatan: Laravel 11+ mendukung perubahan enum secara native
-            $table->enum('status', ['on-going', 'completed', 'dropped', 'dikapak'])
-                ->default('on-going')
-                ->change();
+            // $table->enum('status', ['on-going', 'completed', 'dropped', 'dikapak'])
+            //     ->default('on-going')
+            //     ->change();
         });
     }
 
@@ -25,9 +27,11 @@ return new class extends Migration
     {
         Schema::table('comics', function (Blueprint $table) {
             $table->dropColumn(['release_year', 'finish_year']);
+            $table->string('status')->default('pre-release')->change();
+
             // Kembalikan ke enum awal jika perlu
-            $table->enum('status', ['pre-release', 'on-going', 'stopped', 'completed'])
-                ->change();
+            // $table->enum('status', ['pre-release', 'on-going', 'stopped', 'completed'])
+            //     ->change();
         });
     }
 };

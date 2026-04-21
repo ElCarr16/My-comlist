@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('comics_status', function (Blueprint $table) {
-            DB::statement("ALTER TABLE comics MODIFY COLUMN status ENUM('on-going', 'completed', 'dropped', 'dikapak', 'hiatus') NOT NULL");
+            // DB::statement("ALTER TABLE comics MODIFY COLUMN status ENUM('on-going', 'completed', 'dropped', 'dikapak', 'hiatus') NOT NULL");
         });
     }
 

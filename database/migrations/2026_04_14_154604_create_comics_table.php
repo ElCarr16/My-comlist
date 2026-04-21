@@ -18,8 +18,10 @@ return new class extends Migration
             $table->text('synopsis')->nullable();
             $table->string('author')->nullable();
             $table->string('cover_image')->nullable();
-            $table->enum('status', ['pre-release', 'on-going', 'stopped', 'completed'])->default('pre-release');
-            $table->integer('total_chapter')->default(0); // Angka 0 tanpa tanda kutip
+            // $table->enum('status', ['pre-release', 'on-going', 'stopped', 'completed'])->default('pre-release');]
+            // untuk Postgres
+            $table->string('status')->default('pre-release');
+            $table->integer('total_chapter')->default(0);
             $table->timestamps();
         });
     }
