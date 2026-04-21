@@ -50,9 +50,7 @@ class ComicController extends Controller
                 $query->orderByRaw('(COALESCE(mal_favorites, 0) + liked_by_users_count) DESC');
                 break;
             case 'rating':
-                // (MAL Score + Lokal Avg) / 2
-                $query->orderByRaw('(COALESCE(mal_score, 0) + COALESCE(local_avg_score, 0)) / 
-                                   (CASE WHEN mal_score > 0 AND local_avg_score > 0 THEN 2 ELSE 1 END) DESC');
+                $query->orderByRaw("(COALESCE((SELECT AVG(score) FROM comic_user WHERE comic_id = comics.id), 0) + COALESCE(mal_score, 0)) DESC");
                 break;
             case 'oldest':
                 $query->orderBy('created_at', 'asc');

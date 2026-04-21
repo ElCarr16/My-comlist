@@ -45,8 +45,6 @@
 @section('content')
     <section class="container mb-5">
         <div class="katalog-section shadow-lg">
-            <h3 class="fw-bold mb-4">Katalog Komik</h3>
-
             {{-- SINI KITA PANGGIL KOMPONENNYA --}}
             <livewire:comic-search />
         </div>

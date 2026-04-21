@@ -1,38 +1,40 @@
 <div>
+    {{-- HEADER & SEARCH BAR --}}
+    <div class="d-flex align-items-center gap-4 mb-4">
+        <h3 class="fw-bold mb-0">Katalog Komik</h3>
+        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari judul komik..."
+            class="form-control filter-input bg-dark text-white border-secondary flex-grow-1">
+    </div>
+
     {{-- FILTER UI --}}
     <div class="p-3 mb-4 shadow-sm" style="background: #1a1a1a; border-radius: 15px; border: 1px solid #222;">
-        <div class="row g-2 align-items-center">
+        <div class="row g-2 align-items-stretch">
 
-            {{-- Search (Hilangkan .live.debounce agar hanya jalan saat tombol terapkan diklik) --}}
-            <div class="col-12 col-md-2">
-                <input type="text" wire:model="search" placeholder="Cari komik..."
-                    class="form-control filter-input bg-dark text-white border-secondary">
-            </div>
-
-            {{-- Dropdown Genre --}}
-            <div class="col-6 col-md-2 dropdown">
-                {{-- TAMBAHAN: data-bs-auto-close="outside" agar tidak nutup saat checkbox diklik --}}
-                <button class="btn btn-dark w-100 dropdown-toggle border-secondary" type="button"
-                    data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
-                    style="background-color: #212529; color: #fff;">
-                    Genre ({{ count($selectedGenres) }})
-                </button>
-                <div class="dropdown-menu p-3 bg-dark border-secondary shadow"
-                    style="max-height: 300px; overflow-y: auto; width: 250px;">
-                    @foreach ($genres as $g)
-                        <div class="form-check mb-2">
-                            {{-- wire:model biasa (tanpa .live) --}}
-                            <input class="form-check-input bg-secondary border-secondary" type="checkbox"
-                                wire:model="selectedGenres" value="{{ $g->id }}" id="genre{{ $g->id }}">
-                            <label class="form-check-label text-light"
-                                for="genre{{ $g->id }}">{{ $g->name }}</label>
-                        </div>
-                    @endforeach
+            {{-- 1. GENRE --}}
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="dropdown h-100 d-flex">
+                    <button class="btn btn-dark w-100 dropdown-toggle border-secondary flex-grow-1 d-flex align-items-center justify-content-between" type="button"
+                        data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                        style="background-color: #212529; color: #fff;">
+                        <span>Genre ({{ count($selectedGenres) }})</span>
+                    </button>
+                    <div class="dropdown-menu p-3 bg-dark border-secondary shadow w-100"
+                        style="max-height: 300px; overflow-y: auto;">
+                        @foreach ($genres as $g)
+                            <div class="form-check mb-2">
+                                <input class="form-check-input bg-secondary border-secondary" type="checkbox"
+                                    wire:model="selectedGenres" value="{{ $g->id }}" id="genre{{ $g->id }}">
+                                <label class="form-check-label text-light"
+                                    for="genre{{ $g->id }}">{{ $g->name }}</label>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
-            <div class="col-6 col-md-2">
-                <select wire:model="filterStatus" class="form-select filter-input border-secondary bg-dark text-white">
+            {{-- 2. STATUS --}}
+            <div class="col-6 col-md-4 col-lg-2">
+                <select wire:model="filterStatus" class="form-select filter-input h-100 w-100 border-secondary bg-dark text-white">
                     <option value="">Status</option>
                     @foreach ($statusOptions as $s)
                         <option value="{{ $s }}">{{ $s }}</option>
@@ -40,8 +42,9 @@
                 </select>
             </div>
 
-            <div class="col-4 col-md-2">
-                <select wire:model="type" class="form-select filter-input bg-dark text-white border-secondary">
+            {{-- 3. TIPE --}}
+            <div class="col-6 col-md-4 col-lg-2">
+                <select wire:model="type" class="form-select filter-input h-100 w-100 bg-dark text-white border-secondary">
                     <option value="">Tipe</option>
                     <option value="Manga">Manga</option>
                     <option value="Manhwa">Manhwa</option>
@@ -50,36 +53,39 @@
                 </select>
             </div>
 
-            <div class="col-3 col-md-1">
+            {{-- 4. TAHUN --}}
+            <div class="col-6 col-md-3 col-lg-1">
                 <input type="number" wire:model="year" placeholder="Tahun"
-                    class="form-control filter-input px-2 bg-dark text-white border-secondary">
+                    class="form-control filter-input h-100 w-100 px-2 bg-dark text-white border-secondary">
             </div>
 
-            <div class="col-5 col-md-2">
-                <div class="input-group">
+            {{-- 5. SORTING --}}
+            <div class="col-8 col-md-6 col-lg-3">
+                <div class="input-group h-100 w-100">
                     <select wire:model="sort"
-                        class="form-select filter-input border-end-0 bg-dark text-white border-secondary">
+                        class="form-select filter-input border-end-0 h-100 bg-dark text-white border-secondary">
                         <option value="latest">Terbaru</option>
                         <option value="popular">Populer</option>
                         <option value="rating">Rating</option>
                         <option value="name">A-Z</option>
                     </select>
-                    {{-- Tombol Sort Direction tetap biarkan bereaksi langsung --}}
-                    <button wire:click="toggleDirection" class="btn btn-dark border-secondary border-opacity-25"
+                    <button wire:click="toggleDirection" class="btn btn-dark border-start-0 border-secondary border-opacity-25 h-100 px-3"
                         title="Balik Urutan">
                         <i class="bi {{ $sortOrder == 'desc' ? 'bi-sort-down' : 'bi-sort-up-alt' }}"></i>
                     </button>
                 </div>
             </div>
 
-            {{-- TOMBOL TERAPKAN DAN RESET --}}
-            <div class="col-12 col-md-1 d-flex gap-1">
-                <button wire:click="applyFilters" class="btn btn-success w-50" title="Terapkan Filter">
-                    <i class="bi bi-check-lg"></i>
-                </button>
-                <button wire:click="resetFilters" class="btn btn-outline-danger w-50" title="Reset Filter">
-                    <i class="bi bi-arrow-counterclockwise"></i>
-                </button>
+            {{-- 6. BUTTONS --}}
+            <div class="col-4 col-md-3 col-lg-2">
+                <div class="d-flex gap-1 w-100 h-100">
+                    <button wire:click="applyFilters" class="btn btn-success flex-fill h-100" title="Terapkan">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                    <button wire:click="resetFilters" class="btn btn-outline-danger flex-fill h-100" title="Reset">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
             </div>
 
         </div>

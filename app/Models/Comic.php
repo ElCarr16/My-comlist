@@ -59,13 +59,8 @@ class Comic extends Model
         $localScore = $this->avg_score ?? 0;
         $malScore = $this->mal_score ?? 0;
 
-        // Jika user lokal sudah merating DAN MAL punya rating = Diambil nilai tengahnya (Rata-rata)
-        if ($localScore > 0 && $malScore > 0) {
-            return ($localScore + $malScore) / 2;
-        }
-
-        // Jika tidak, tampilkan mana yang ada nilainya (Prioritaskan Lokal jika ada)
-        return $localScore > 0 ? $localScore : $malScore;
+        // Total rating: sum capped at 10
+        return min($localScore + $malScore, 10.0);
     }
 
     // --- ACCESSOR UNTUK TOTAL LIKES ---

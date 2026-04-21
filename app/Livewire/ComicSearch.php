@@ -137,7 +137,7 @@ class ComicSearch extends Component
                 $query->orderByRaw("((SELECT COUNT(*) FROM users INNER JOIN comic_likes ON users.id = comic_likes.user_id WHERE comics.id = comic_likes.comic_id) + COALESCE(mal_favorites, 0)) {$direction}")->orderBy('id', $direction);
                 break;
             case 'rating':
-                $query->orderByRaw("((SELECT AVG(comic_user.score) FROM users INNER JOIN comic_user ON users.id = comic_user.user_id WHERE comics.id = comic_user.comic_id) + COALESCE(mal_score, 0)) / 2 {$direction}")->orderBy('id', $direction);
+                $query->orderByRaw("(COALESCE((SELECT AVG(score) FROM comic_user WHERE comic_id = comics.id), 0) + COALESCE(mal_score, 0)) {$direction}")->orderBy('mal_id', $direction);
                 break;
             case 'name':
                 $query->orderBy('title', $direction)->orderBy('id', $direction);
