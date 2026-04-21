@@ -7,6 +7,7 @@ use App\Models\Comic;
 use App\Models\Genre;
 use Illuminate\Support\Facades\Auth;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\DB;
 
 class ComicSearch extends Component
 {
@@ -22,15 +23,18 @@ class ComicSearch extends Component
     public $sort = 'latest';
     public $sortOrder = 'desc';
 
+    // Diperbaiki: Menambahkan ?Comic agar tidak error diubah ke array oleh Livewire 3
     public ?Comic $selected_comic = null;
     public $last_read_chapter = 0;
     public $status = 'reading';
     public $score = 10;
 
+    // Listener agar Paginasi/UI Search langsung memuat ulang data saat Like ditekan
     protected $listeners = ['likeUpdated' => '$refresh'];
 
     public function applyFilters()
     {
+        // Fungsi ini dipanggil oleh tombol Hijau (Terapkan)
         $this->resetPage();
     }
 
@@ -46,14 +50,60 @@ class ComicSearch extends Component
         $this->resetPage();
     }
 
+    public function openProgressModal($comicId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $this->selected_comic = Comic::find($comicId);
+        $userProgress = Auth::user()->trackedComics()->where('comics.id', $comicId)->first();
+
+        if ($userProgress) {
+            $this->last_read_chapter = $userProgress->pivot->last_read_chapter;
+            $this->status = $userProgress->pivot->reading_status;
+            $this->score = $userProgress->pivot->score;
+        } else {
+            $this->reset(['last_read_chapter', 'status', 'score']);
+        }
+    }
+
+    public function updateProgress()
+    {
+        if (!Auth::check()) return redirect()->route('login');
+
+        $rules = [
+            'last_read_chapter' => 'required|integer|min:0',
+            'status' => 'required',
+            'score' => 'nullable|integer|min:1|max:10',
+        ];
+
+        if ($this->selected_comic && $this->selected_comic->total_chapter > 0) {
+            $rules['last_read_chapter'] .= '|max:' . $this->selected_comic->total_chapter;
+        }
+
+        $this->validate($rules);
+
+        Auth::user()->trackedComics()->syncWithoutDetaching([
+            $this->selected_comic->id => [
+                'reading_status' => $this->status,
+                'last_read_chapter' => $this->last_read_chapter,
+                'score' => $this->score,
+                'updated_at' => now(),
+            ]
+        ]);
+
+        $this->dispatch('closeModal');
+        session()->flash('message', 'Progress berhasil diperbarui!');
+    }
+
     public function render()
     {
-        // 1. Inisialisasi Query dengan Aggregates
         $query = Comic::query()
-            ->withCount('likedByUsers')
+            ->withCount('likedByUsers as liked_by_users_count')
             ->withAvg('users as avg_score', 'comic_user.score');
 
-        // 2. Filter Pencarian
+        // Filter Pencarian
         if (!empty($this->search)) {
             $searchTerm = '%' . strtolower($this->search) . '%';
             $query->where(function ($q) use ($searchTerm) {
@@ -62,47 +112,38 @@ class ComicSearch extends Component
             });
         }
 
-        // 3. Filter Genre
+        // PERBAIKAN LOGIKA GENRE: Menjadi OR (Pilih Action/Romance, munculkan yang punya salah satu)
         if (!empty($this->selectedGenres)) {
             $query->whereHas('genres', function ($q) {
                 $q->whereIn('genres.id', $this->selectedGenres);
-            });
+            }); // <-- Syarat count() dihapus agar tidak terlalu ketat
         }
 
-        // 4. Filter Status
         if (!empty($this->filterStatus)) {
             $query->whereRaw('TRIM(status) = ?', [$this->filterStatus]);
         }
 
-        // 5. Filter Tipe
         if (!empty($this->type)) {
             $query->whereRaw('LOWER(type) = ?', [strtolower($this->type)]);
         }
 
-        // 6. Filter Tahun
         if ($this->year) {
             $query->where('release_year', $this->year);
         }
 
-        // 7. Sorting Gabungan (MAL + Lokal)
         $direction = $this->sortOrder;
-
         switch ($this->sort) {
             case 'popular':
-                // (MAL Favorites + Like Lokal)
-                $query->orderByRaw('(COALESCE(mal_favorites, 0) + liked_by_users_count) ' . $direction);
+                $query->orderByRaw("((SELECT COUNT(*) FROM users INNER JOIN comic_likes ON users.id = comic_likes.user_id WHERE comics.id = comic_likes.comic_id) + COALESCE(mal_favorites, 0)) {$direction}")->orderBy('id', $direction);
                 break;
             case 'rating':
-                // (MAL Score + Rata-rata Lokal) / 2
-                $query->orderByRaw('(COALESCE(mal_score, 0) + COALESCE(avg_score, 0)) / 
-                                   (CASE WHEN mal_score > 0 AND avg_score > 0 THEN 2 ELSE 1 END) ' . $direction);
+                $query->orderByRaw("((SELECT AVG(comic_user.score) FROM users INNER JOIN comic_user ON users.id = comic_user.user_id WHERE comics.id = comic_user.comic_id) + COALESCE(mal_score, 0)) / 2 {$direction}")->orderBy('id', $direction);
                 break;
             case 'name':
-                $query->orderBy('title', $direction);
+                $query->orderBy('title', $direction)->orderBy('id', $direction);
                 break;
-            case 'latest':
             default:
-                $query->orderBy('created_at', 'desc');
+                $query->orderBy('release_year', $direction)->orderBy('id', $direction);
                 break;
         }
 
