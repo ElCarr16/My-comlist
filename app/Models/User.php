@@ -75,4 +75,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Comic::class, 'comic_likes')->withTimestamps();
     }
+    public function comics()
+    {
+        return $this->belongsToMany(Comic::class, 'comic_user')
+            ->withPivot('reading_status', 'last_read_chapter', 'score');
+    }
 }
