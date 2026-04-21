@@ -101,27 +101,30 @@ class ComicSearch extends Component
             ->withCount('likedByUsers')
             ->withAvg('users as avg_score', 'comic_user.score');
 
-        // Filter Search
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('title', 'like', '%' . $this->search . '%')
-                    ->orWhere('alternative_titles', 'like', '%' . $this->search . '%');
+        // 1. Filter Search (Diperbarui untuk PostgreSQL)
+        if (!empty($this->search)) {
+            $searchTerm = '%' . strtolower($this->search) . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                // Menggunakan LOWER agar kebal terhadap huruf besar/kecil
+                $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(alternative_titles) LIKE ?', [$searchTerm]);
             });
         }
 
-        // Filter Genre
+        // 2. Filter Genre (Kode aslimu sudah BENAR, biarkan saja)
         if ($this->genre) {
             $query->whereHas('genres', function ($q) {
                 $q->where('genres.id', $this->genre);
             });
         }
 
-        // Filter Tipe
-        if ($this->type) {
-            $query->where('type', $this->type);
+        // 3. Filter Tipe (Diperbarui untuk PostgreSQL)
+        if (!empty($this->type)) {
+            // Paksa mengubah database dan inputan menjadi huruf kecil semua saat dicocokkan
+            $query->whereRaw('LOWER(type) = ?', [strtolower($this->type)]);
         }
 
-        // Filter Tahun
+        // 4. Filter Tahun (Aman, karena angka)
         if ($this->year) {
             $query->where('release_year', $this->year);
         }
@@ -139,6 +142,7 @@ class ComicSearch extends Component
             // Gunakan release_year karena itu kolom yang benar di tabel kamu
             $query->orderBy('release_year', $direction)->orderBy('created_at', $direction);
         }
+
         return view('livewire.comic-search', [
             'comics' => $query->paginate(12),
             'genres' => Genre::orderBy('name', 'asc')->get()

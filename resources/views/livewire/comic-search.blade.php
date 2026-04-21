@@ -18,10 +18,10 @@
             <div class="col-6 col-md-2">
                 <select wire:model.live="type" class="form-select filter-input">
                     <option value="">Tipe</option>
-                    <option value="manga">Manga</option>
-                    <option value="manhwa">Manhwa</option>
-                    <option value="manhua">Manhua</option>
-                    <option value="oneshot">Oneshot</option>
+                    <option value="Manga">Manga</option>
+                    <option value="Manhwa">Manhwa</option>
+                    <option value="Manhua">Manhua</option>
+                    <option value="One-shot">Oneshot</option>
                 </select>
             </div>
             <div class="col-4 col-md-2">

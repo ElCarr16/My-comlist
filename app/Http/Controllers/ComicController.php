@@ -16,11 +16,21 @@ class ComicController extends Controller
             ->withCount('likedByUsers')
             ->withAvg('users', 'comic_user.score');
 
-        // 2. Filter Pencarian Judul
+        // 2. Filter Pencarian Judul, Sinopsis, dan Penulis (Versi Controller Biasa)
+
+        // Cek apakah user mengetik sesuatu di URL (?search=...)
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%')
-                ->orWhere('synopsis', 'like', '%' . $request->search . '%')
-                ->orWhere('author', 'like', '%' . $request->search . '%');
+
+            // Ambil kata kunci dari $request, ubah ke huruf kecil, dan tambah %
+            $searchTerm = '%' . strtolower($request->search) . '%';
+
+            // Bungkus dalam function($q) agar tidak merusak filter Genre/Tipe
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(synopsis) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(author) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(alternative_titles) LIKE ?', [$searchTerm]);
+            });
         }
 
         // 3. Filter Kategori Genre
