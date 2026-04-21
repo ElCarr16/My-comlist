@@ -9,7 +9,7 @@
 
             {{-- HEADER --}}
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold mb-0">Profil</h4>
+                <h4 class="fw-bold mb-0 text-white">Profil</h4>
 
                 <a href="{{ route('user.dashboard') }}" class="btn btn-outline-light rounded-pill px-3">
                     <i class="bi bi-arrow-left"></i>
@@ -24,7 +24,7 @@
             @endif
 
             {{-- PROFILE CARD --}}
-            <div class="card-custom p-4 text-center">
+            <div class="card-custom p-4 text-center text-white">
 
                 {{-- AVATAR --}}
                 <div class="mb-4">
@@ -45,19 +45,19 @@
                     {{ $user->user_name ? '@' . $user->user_name : $user->name }}
                 </h5>
 
-                <p class="text-secondary small mb-4">
+                <p class="text-white-50 small mb-4">
                     <i class="bi bi-envelope"></i> {{ $user->email }}
                 </p>
 
                 {{-- INFO --}}
                 <div class="row text-start mb-4">
                     <div class="col-6">
-                        <small class="text-muted">Role</small>
+                        <small class="text-white-50">Role</small>
                         <div class="fw-semibold">{{ ucfirst($user->role ?? 'User') }}</div>
                     </div>
 
                     <div class="col-6">
-                        <small class="text-muted">Bergabung</small>
+                        <small class="text-white-50">Bergabung</small>
                         <div class="fw-semibold">{{ $user->created_at->format('d M Y') }}</div>
                     </div>
                 </div>

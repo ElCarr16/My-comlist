@@ -9,14 +9,14 @@
 
             {{-- HEADER --}}
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold mb-0">Edit Profil</h4>
+                <h4 class="fw-bold mb-0 text-white">Edit Profil</h4>
 
                 <a href="{{ route('user.profile') }}" class="btn btn-outline-light rounded-pill px-3">
                     Batal
                 </a>
             </div>
 
-            <div class="card-custom p-4">
+            <div class="card-custom p-4 text-white">
 
                 <form action="{{ route('user.profile.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
@@ -36,17 +36,17 @@
                                 style="width:110px;height:110px;object-fit:cover;">
                         @endif
 
-                        <input type="file" name="profile_image" id="imageInput" class="form-control form-control-sm"
+                        <input type="file" name="profile_image" id="imageInput" class="form-control form-control-sm bg-dark text-white border-0"
                             accept="image/*">
-                        <small class="text-secondary">Max 2MB (JPG, PNG, WEBP)</small>
+                        <small class="text-white-50">Max 2MB (JPG, PNG, WEBP)</small>
                     </div>
 
                     {{-- USERNAME --}}
                     <div class="mb-3">
-                        <label class="form-label">Username</label>
+                        <label class="form-label text-white">Username</label>
 
                         <div class="input-group">
-                            <span class="input-group-text bg-dark border-0 text-secondary">@</span>
+                            <span class="input-group-text bg-dark border-0 text-white-50">@</span>
 
                             <input type="text" name="user_name"
                                 class="form-control bg-dark text-white border-0 @error('user_name') is-invalid @enderror"
@@ -56,23 +56,23 @@
                         @error('user_name')
                             <small class="text-danger">{{ $message }}</small>
                         @else
-                            <small class="text-secondary">Username tidak bisa sama dengan pengguna lain.</small>
+                            <small class="text-white-50">Username tidak bisa sama dengan pengguna lain.</small>
                         @enderror
                     </div>
 
                     {{-- NAME --}}
                     <div class="mb-3">
-                        <label class="form-label">Nama</label>
+                        <label class="form-label text-white">Nama</label>
                         <input type="text" name="name" class="form-control bg-dark text-white border-0"
                             value="{{ old('name', $user->name) }}" required>
                     </div>
 
                     {{-- EMAIL --}}
                     <div class="mb-4">
-                        <label class="form-label">Email</label>
+                        <label class="form-label text-white">Email</label>
                         <input type="email" class="form-control bg-secondary text-white border-0"
                             value="{{ $user->email }}" disabled>
-                        <small class="text-secondary">Email tidak bisa diubah</small>
+                        <small class="text-white-50">Email tidak bisa diubah</small>
                     </div>
 
                     {{-- SUBMIT --}}
