@@ -39,7 +39,7 @@
                 {{-- PASSWORD --}}
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing: 1px;">Password</label>
-                    
+
                     {{-- BUNGKUS KHUSUS INPUT & ICON --}}
                     <div class="position-relative">
                         <input type="password" name="password" id="password"
@@ -67,10 +67,8 @@
             {{-- FOOTER --}}
             <div class="text-center mt-4">
                 <small class="text-secondary">
-                    Belum punya akun?
-                    <a href="{{ route('register') }}" class="text-warning text-decoration-none fw-bold">
-                        Daftar
-                    </a>
+                    Belum punya akun? <a href="{{ route('register') }}" class="text-warning text-decoration-none fw-bold">Daftar</a> |
+                    <a href="{{ route('forgot-password') }}" class="text-warning text-decoration-none fw-bold">Lupa Password?</a>
                 </small>
             </div>
 

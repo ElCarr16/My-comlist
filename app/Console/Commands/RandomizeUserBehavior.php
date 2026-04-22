@@ -31,8 +31,7 @@ class RandomizeUserBehavior extends Command
         $this->warn("Ditemukan {$dummyUsers->count()} user dummy. Memperbarui interaksi mereka...");
 
         DB::transaction(function () use ($dummyUsers, $comics) {
-            // 2. HAPUS INTERAKSI LAMA HANYA UNTUK USER DUMMY (Opsional)
-            // Ini agar database tidak bengkak dengan data ganda. Kita bersihkan dulu riwayat dummy.
+            // bersihkan dulu riwayat dummy.
             $dummyUserIds = $dummyUsers->pluck('id');
             DB::table('comic_likes')->whereIn('user_id', $dummyUserIds)->delete();
             DB::table('comic_user')->whereIn('user_id', $dummyUserIds)->delete();
@@ -43,7 +42,7 @@ class RandomizeUserBehavior extends Command
 
             foreach ($dummyUsers as $user) {
                 // Random jumlah komik yang akan diinteraksi (0 sampai 15 komik)
-                $jumlahInteraksi = rand(0, 15);
+                $jumlahInteraksi = rand(0, 100);
                 if ($jumlahInteraksi == 0) {
                     $bar->advance();
                     continue; // User ini sedang malas, lewati

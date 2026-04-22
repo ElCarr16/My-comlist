@@ -46,7 +46,7 @@ class ComicController extends Controller
         $data['slug'] = Str::slug($request->title);
 
         if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+            $data['cover_image'] = $request->file('cover_image')->store('covers');
         }
 
         $comic = Comic::create($data);
@@ -83,10 +83,10 @@ class ComicController extends Controller
         $data['slug'] = Str::slug($request->title);
 
         if ($request->hasFile('cover_image')) {
-            if ($comic->cover_image && Storage::disk('public')->exists($comic->cover_image)) {
-                Storage::disk('public')->delete($comic->cover_image);
+            if ($comic->cover_image && Storage::exists($comic->cover_image)) {
+                Storage::delete($comic->cover_image);
             }
-            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+            $data['cover_image'] = $request->file('cover_image')->store('covers');
         }
 
         $comic->update($data);
@@ -97,8 +97,8 @@ class ComicController extends Controller
 
     public function destroy(Comic $comic)
     {
-        if ($comic->cover_image && Storage::disk('public')->exists($comic->cover_image)) {
-            Storage::disk('public')->delete($comic->cover_image);
+        if ($comic->cover_image && Storage::exists($comic->cover_image)) {
+            Storage::delete($comic->cover_image);
         }
 
         $comic->delete();

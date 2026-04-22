@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OtpMail;
 
 class ProfileController extends Controller
 {
@@ -15,8 +19,6 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        // Menyiapkan data statistik berdasarkan relasi di model User
-        // Pastikan relasi 'comics' sudah didefinisikan di Model User
         $stats = [
             'reading' => $user->comics()->where('reading_status', 'reading')->count(),
             'finished' => $user->comics()->where('reading_status', 'finished')->count(),
@@ -26,18 +28,12 @@ class ProfileController extends Controller
         return view('user.profile', compact('user', 'stats'));
     }
 
-    /**
-     * Menampilkan form edit profil.
-     */
     public function edit()
     {
         $user = Auth::user();
         return view('user.edit-profile', compact('user'));
     }
 
-    /**
-     * Memproses pembaruan data profil dan penghapusan foto.
-     */
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -51,31 +47,27 @@ class ProfileController extends Controller
             'user_name.alpha_dash' => 'Username hanya boleh berisi huruf, angka, strip (-), dan garis bawah (_).'
         ]);
 
-        // 1. Logika Hapus Foto (Jika user menekan tombol hapus)
         if ($request->input('remove_image') == '1') {
             if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
+                Storage::delete($user->profile_image);
                 $user->profile_image = null;
             }
         }
 
-        // 2. Logika Upload Foto Baru (Jika user memilih file baru)
         if ($request->hasFile('profile_image')) {
-            // Hapus foto lama jika ada sebelum upload yang baru
             if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
+                Storage::delete($user->profile_image);
             }
 
-            // Simpan foto ke folder 'profiles' di disk 'public'
-            $path = $request->file('profile_image')->store('profiles', 'public');
+            $path = $request->file('profile_image')->store('profiles');
             $user->profile_image = $path;
         }
 
-        // 3. Simpan data user
         $user->name = $request->name;
         $user->user_name = $request->user_name;
         $user->save();
 
         return redirect()->route('user.profile')->with('success', 'Profil berhasil diperbarui!');
     }
+
 }

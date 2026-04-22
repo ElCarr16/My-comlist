@@ -75,10 +75,10 @@ class UserController extends Controller
         // PERUBAHAN DI SINI: Hapus kata 'public'
         if ($request->hasFile('profile_image')) {
             if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
+                Storage::delete($user->profile_image);
             }
 
-            $data['profile_image'] = $request->file('profile_image')->store('profiles', 'public');
+            $data['profile_image'] = $request->file('profile_image')->store('profiles');
         }
 
         $user->update($data);
@@ -88,12 +88,12 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if (Auth()->id() === $user->id) {
+    if (Auth::id() === $user->id) {
             return redirect()->route('admin.users.index')->with('error', 'Anda tidak bisa menghapus akun Anda sendiri!');
         }
 
         if ($user->profile_image) {
-            Storage::disk('public')->delete($user->profile_image);
+            Storage::delete($user->profile_image);
         }
 
         $user->delete();

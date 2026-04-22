@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\GenreController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return view('welcome');
@@ -25,6 +26,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
+    Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
+    Route::post('/forgot-password', [AuthController::class, 'sendOtp'])->name('forgot.send-otp');
+    Route::get('/otp-input/{email}', [AuthController::class, 'showOtpInput'])->name('forgot.otp-input');
+    Route::post('/otp-verify', [AuthController::class, 'verifyOtp'])->name('forgot.verify-otp');
+    Route::get('/reset-password', [AuthController::class, 'showResetPassword'])->name('forgot.reset-password');
+    Route::post('/reset-password', [AuthController::class, 'processResetPassword'])->name('forgot.process-reset');
 });
 
 // Route Logout (Hanya bisa diakses kalau sudah login)
@@ -54,6 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('user.profile.edit');
     // 3. Proses Simpan Edit Profil
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('user.profile.update');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('user.password.update');
     // --- AKHIR AREA PROFIL ---
 
     Route::post('/tracker/{comic}', [TrackerController::class, 'update'])->name('tracker.update');
@@ -62,9 +70,9 @@ Route::middleware('auth')->group(function () {
 
 // panggil profile pict
 Route::get('/storage/profiles/{filename}', function ($filename) {
-    if (! Storage::disk('public')->exists('profiles/' . $filename)) {
+    if (! Storage::exists('profiles/' . $filename)) {
         abort(404);
     }
 
-    return Storage::disk('public')->response('profiles/' . $filename);
+    return Storage::response('profiles/' . $filename);
 })->name('profile.image.view');
