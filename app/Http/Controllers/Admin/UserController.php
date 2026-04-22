@@ -75,12 +75,10 @@ class UserController extends Controller
         // PERUBAHAN DI SINI: Hapus kata 'public'
         if ($request->hasFile('profile_image')) {
             if ($user->profile_image) {
-                // Berubah dari Storage::disk('public')->delete(...)
-                Storage::delete($user->profile_image);
+                Storage::disk('public')->delete($user->profile_image);
             }
 
-            // Berubah dari ->store('profile_images', 'public')
-            $data['profile_image'] = $request->file('profile_image')->store('profile_images');
+            $data['profile_image'] = $request->file('profile_image')->store('profiles', 'public');
         }
 
         $user->update($data);
@@ -95,8 +93,7 @@ class UserController extends Controller
         }
 
         if ($user->profile_image) {
-            // Berubah dari Storage::disk('public')->delete(...)
-            Storage::delete($user->profile_image);
+            Storage::disk('public')->delete($user->profile_image);
         }
 
         $user->delete();

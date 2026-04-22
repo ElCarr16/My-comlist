@@ -62,11 +62,9 @@ Route::middleware('auth')->group(function () {
 
 // panggil profile pict
 Route::get('/storage/profiles/{filename}', function ($filename) {
-    $path = storage_path('app/public/profiles/' . $filename);
-
-    if (!file_exists($path)) {
+    if (! Storage::disk('public')->exists('profiles/' . $filename)) {
         abort(404);
     }
 
-    return response()->file($path);
+    return Storage::disk('public')->response('profiles/' . $filename);
 })->name('profile.image.view');

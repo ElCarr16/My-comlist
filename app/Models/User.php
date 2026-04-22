@@ -26,7 +26,7 @@ class User extends Authenticatable
         'role',      // Ditambahkan agar bisa memberikan akses admin
         'profile_image',
     ];
-    
+
     protected static function booted()
     {
         static::creating(function ($user) {
@@ -35,7 +35,7 @@ class User extends Authenticatable
                 $user->user_name = $user->name;
             }
 
-            // PROTEKSI TAMBAHAN: Jika profile_image tidak ada saat create, 
+            // PROTEKSI TAMBAHAN: Jika profile_image tidak ada saat create,
             // jangan biarkan ia jadi NULL jika ada default (opsional)
             if (is_null($user->profile_image)) {
                 $user->profile_image = null; // Tetap null tapi aman
@@ -43,11 +43,7 @@ class User extends Authenticatable
         });
 
         static::updating(function ($user) {
-            // Jika profil image sedang diupdate ke NULL padahal sebelumnya ada isinya,
-            // batalkan perubahan tersebut.
-            if ($user->isDirty('profile_image') && is_null($user->profile_image)) {
-                $user->profile_image = $user->getOriginal('profile_image');
-            }
+            // Allow null profile_image for removal
         });
     }
 
