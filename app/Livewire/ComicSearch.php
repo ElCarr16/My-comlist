@@ -20,7 +20,7 @@ class ComicSearch extends Component
     public $filterStatus = '';
     public $type = '';
     public $year = '';
-    public $sort = 'latest';
+    public $sort = 'rating';
     public $sortOrder = 'desc';
 
     // Diperbaiki: Menambahkan ?Comic agar tidak error diubah ke array oleh Livewire 3

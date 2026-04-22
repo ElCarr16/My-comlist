@@ -64,10 +64,10 @@
                 <div class="input-group h-100 w-100">
                     <select wire:model="sort"
                         class="form-select filter-input border-end-0 h-100 bg-dark text-white border-secondary">
-                        <option value="latest">Terbaru</option>
-                        <option value="popular">Populer</option>
                         <option value="rating">Rating</option>
                         <option value="name">A-Z</option>
+                        <option value="popular">Populer</option>
+                        <option value="latest">Terbaru</option>
                     </select>
                     <button wire:click="toggleDirection" class="btn btn-dark border-start-0 border-secondary border-opacity-25 h-100 px-3"
                         title="Balik Urutan">
