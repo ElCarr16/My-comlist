@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,58 +9,31 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'user_name', // Ditambahkan agar form registrasi tidak error
+        'user_name',
         'name',
         'email',
         'password',
-        'role',      // Ditambahkan agar bisa memberikan akses admin
+        'role',
         'profile_image',
     ];
 
     protected static function booted()
     {
         static::creating(function ($user) {
-            // Jika user_name kosong, isi dengan name
             if (empty($user->user_name)) {
                 $user->user_name = $user->name;
             }
-
-            // PROTEKSI TAMBAHAN: Jika profile_image tidak ada saat create,
-            // jangan biarkan ia jadi NULL jika ada default (opsional)
-            if (is_null($user->profile_image)) {
-                $user->profile_image = null; // Tetap null tapi aman
-            }
-        });
-
-        static::updating(function ($user) {
-            // Allow null profile_image for removal
         });
     }
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -71,23 +43,38 @@ class User extends Authenticatable
     }
 
     /**
-     * Relasi Many-to-Many ke Comic (Fitur Tracker/My List)
+     * RELASI INTERNAL: Menghubungkan user dengan komik yang ada di database kamu.
+     * Digunakan untuk "My List" dan "Aktivitas Terakhir".
      */
     public function trackedComics()
     {
-        // Parameter: Model Tujuan, Nama Tabel Pivot
         return $this->belongsToMany(Comic::class, 'comic_user')
             ->withPivot('reading_status', 'score', 'last_read_chapter')
             ->withTimestamps();
     }
-    // Relasi agar User bisa nge-like komik
+
+    /**
+     * RELASI EKSTERNAL: Menghubungkan user dengan URL komik dari luar (Bajakan/Legal).
+     * Digunakan untuk "Website Terintegrasi".
+     */
+    public function trackedSources()
+    {
+        return $this->hasMany(TrackedComic::class, 'user_id');
+    }
+
+    /**
+     * RELASI LIKE: Untuk fitur menyukai komik.
+     */
     public function likedComics()
     {
         return $this->belongsToMany(Comic::class, 'comic_likes')->withTimestamps();
     }
+
+    /**
+     * fungsi ini akan mengarahkan ke trackedComics() agar tidak error.
+     */
     public function comics()
     {
-        return $this->belongsToMany(Comic::class, 'comic_user')
-            ->withPivot('reading_status', 'last_read_chapter', 'score');
+        return $this->trackedComics();
     }
 }

@@ -35,4 +35,7 @@ return [
         ],
     ],
 
+    'mal' => [
+        'client_id' => env('MAL_CLIENT_ID'),
+    ],
 ];

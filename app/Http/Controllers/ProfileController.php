@@ -69,5 +69,98 @@ class ProfileController extends Controller
 
         return redirect()->route('user.profile')->with('success', 'Profil berhasil diperbarui!');
     }
+    public function storeSource(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'url' => 'required|url'
+        ]);
 
+        // Tambahkan 'user_id' di sini menggunakan auth()->id()
+        \App\Models\TrackedComic::create([
+            'user_id' => auth()->id(),
+            'title'   => $request->title,
+            'url'     => $request->url,
+        ]);
+
+        return back()->with('success', 'URL berhasil ditambahkan.');
+    }
+
+    public function updateSource(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'url' => 'required|url'
+        ]);
+
+        \App\Models\TrackedComic::where('user_id', auth()->id())->where('id', $id)->update([
+            'title'   => $request->title,
+            'url'     => $request->url,
+        ]);
+
+        return back()->with('success', 'URL berhasil diperbarui.');
+    }
+
+    public function deleteSource($id)
+    {
+        \App\Models\TrackedComic::where('user_id', auth()->id())->where('id', $id)->delete();
+        return back()->with('success', 'URL berhasil dihapus.');
+    }
+
+    // 1. Fungsi khusus untuk MENYIMPAN akun ke database (dipanggil dari Modal)
+    public function storeMalAccount(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'url' => 'required|url',
+        ]);
+
+        \App\Models\TrackedComic::create([
+            'user_id' => auth()->id(),
+            // Kita simpan dengan format jelas agar mudah diekstrak nanti
+            'title' => $request->username . ' (MAL Account)',
+            'url' => $request->url,
+            'last_chapter_title' => 'Menunggu Sinkronisasi...'
+        ]);
+
+        return back()->with('success', 'Akun MyAnimeList berhasil ditambahkan!');
+    }
+
+    public function executeMalSync($id)
+    {
+        $source = \App\Models\TrackedComic::findOrFail($id);
+        $username = str_replace(' (MAL Account)', '', $source->title);
+
+        // Panggil fungsi ComicScraper yang sudah terbukti berhasil di terminal!
+        $hasil = \App\Services\ComicScraper::syncUserList($username, auth()->id());
+
+        // Cek jika kembaliannya berupa pesan Error
+        if (is_string($hasil) && \Illuminate\Support\Str::startsWith($hasil, 'ERROR')) {
+            return back()->with('error', 'Gagal Sync! ' . $hasil);
+        }
+
+        // Jika berhasil
+        $source->update([
+            'last_chapter_title' => 'Terakhir Sync: ' . now()->format('d M Y, H:i')
+        ]);
+
+        return back()->with('success', "Berhasil sinkronisasi {$hasil} komik dari MAL!");
+    }
+
+    // FITUR BARU: Fungsi untuk Update/Edit Akun MAL
+    public function updateMalAccount(Request $request, $id)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'url' => 'required|url',
+        ]);
+
+        \App\Models\TrackedComic::where('user_id', auth()->id())->where('id', $id)->update([
+            'title' => $request->username . ' (MAL Account)',
+            'url'   => $request->url,
+            'last_chapter_title' => 'Menunggu Sinkronisasi (Diedit)...'
+        ]);
+
+        return back()->with('success', 'Data Akun MyAnimeList berhasil diperbarui!');
+    }
 }

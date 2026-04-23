@@ -30,4 +30,13 @@ class DashboardController extends Controller
 
         return view('user.dashboard', compact('user', 'trackedComics', 'stats'));
     }
+
+    // FUNGSI BARU: Hapus histori komik dari dashboard
+    public function removeComicFromHistory($id)
+    {
+        // Menghapus data komik spesifik dari tabel pivot (comic_user) milik user yang sedang login
+        auth()->user()->comics()->detach($id);
+
+        return back()->with('success', 'Komik berhasil dihapus dari histori bacaan.');
+    }
 }

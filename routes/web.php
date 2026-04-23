@@ -1,78 +1,123 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+
+// Guest & Auth Controllers
+use App\Http\Controllers\AuthController;
+
+// Public & User Controllers
 use App\Http\Controllers\ComicController;
 use App\Http\Controllers\TrackerController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
+
+// Admin Controllers
 use App\Http\Middleware\IsAdmin;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ComicController as AdminComicController;
 use App\Http\Controllers\Admin\GenreController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Storage;
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Route Publik untuk melihat daftar komik
-Route::get('/comics', [ComicController::class, 'index'])->name('comics.index');
-Route::get('/comics/{comic:slug}', [ComicController::class, 'show'])->name('comics.show');
-
-// Route untuk pengunjung yang BELUM login (Guest)
-Route::middleware('guest')->group(function () {
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
-    Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
-    Route::post('/forgot-password', [AuthController::class, 'sendOtp'])->name('forgot.send-otp');
-    Route::get('/otp-input/{email}', [AuthController::class, 'showOtpInput'])->name('forgot.otp-input');
-    Route::post('/otp-verify', [AuthController::class, 'verifyOtp'])->name('forgot.verify-otp');
-    Route::get('/reset-password', [AuthController::class, 'showResetPassword'])->name('forgot.reset-password');
-    Route::post('/reset-password', [AuthController::class, 'processResetPassword'])->name('forgot.process-reset');
+Route::controller(ComicController::class)->group(function () {
+    Route::get('/comics', 'index')->name('comics.index');
+    Route::get('/comics/{comic:slug}', 'show')->name('comics.show');
 });
 
-// Route Logout (Hanya bisa diakses kalau sudah login)
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes (Guest)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('guest')->controller(AuthController::class)->group(function () {
+    Route::get('/register', 'showRegister')->name('register');
+    Route::post('/register', 'processRegister')->name('register.process');
 
-// Rute khusus Admin (Dilindungi Auth & IsAdmin)
+    Route::get('/login', 'showLogin')->name('login');
+    Route::post('/login', 'processLogin')->name('login.process');
+
+    Route::get('/forgot-password', 'forgotPassword')->name('forgot-password');
+    Route::post('/forgot-password', 'sendOtp')->name('forgot.send-otp');
+    Route::get('/forgot-password/otp/{email}', 'showOtpInput')->name('forgot.otp-input');
+    Route::post('/forgot-password/otp', 'verifyOtp')->name('forgot.verify-otp');
+    Route::get('/reset-password', 'showResetPassword')->name('forgot.process-reset');
+    Route::post('/reset-password', 'processResetPassword')->name('forgot.reset-password.process');
+});
+
+/*
+|--------------------------------------------------------------------------
+| User Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+
+    // Logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Dashboard & Koleksi
+    Route::controller(DashboardController::class)->group(function () {
+        Route::get('/dashboard', 'index')->name('user.dashboard');
+
+        // Rute Hapus Histori (Sudah diarahkan ke DashboardController!)
+        Route::delete('/koleksi/hapus/{id}', 'removeComicFromHistory')->name('user.comic.remove');
+    });
+
+    // Profil & Integrasi (Menggunakan Prefix /profile agar rapi)
+    Route::prefix('profile')->controller(ProfileController::class)->group(function () {
+        // Pengaturan Profil
+        Route::get('/', 'index')->name('user.profile');
+        Route::get('/edit', 'edit')->name('user.profile.edit');
+        Route::post('/update', 'update')->name('user.profile.update');
+        Route::post('/password', 'updatePassword')->name('user.password.update');
+
+        // Source URL Manual
+        Route::post('/source', 'storeSource')->name('user.source.store');
+        Route::put('/source/{id}', 'updateSource')->name('user.source.update');
+        Route::delete('/source/{id}', 'deleteSource')->name('user.source.delete');
+
+        // Integrasi MyAnimeList
+        Route::post('/mal/store', 'storeMalAccount')->name('user.source.storeMal');
+        Route::put('/mal/update/{id}', 'updateMalAccount')->name('user.source.updateMal');
+        Route::post('/mal/sync/{id}', 'executeMalSync')->name('user.sync.mal.execute');
+    });
+
+    // Interaksi Komik (Like & Tracker)
+    Route::post('/comics/{comic}/like', [ComicController::class, 'toggleLike'])->name('comics.like');
+    Route::post('/tracker/{comic}', [TrackerController::class, 'update'])->name('tracker.update');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', function () {
         return view('admin.dashboard');
     })->name('dashboard');
+
     Route::resource('users', UserController::class);
     Route::resource('comics', AdminComicController::class);
     Route::resource('genres', GenreController::class);
-
-    // Rute profil dihapus dari sini karena ini area Admin
 });
 
-// Route khusus User yang SUDAH Login (Auth)
-Route::middleware('auth')->group(function () {
-
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('user.dashboard');
-
-    // --- MULAI AREA PROFIL ---
-    // 1. Halaman Lihat Profil
-    Route::get('/profile', [ProfileController::class, 'index'])->name('user.profile');
-    // 2. Halaman Form Edit Profil
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('user.profile.edit');
-    // 3. Proses Simpan Edit Profil
-    Route::post('/profile/update', [ProfileController::class, 'update'])->name('user.profile.update');
-    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('user.password.update');
-    // --- AKHIR AREA PROFIL ---
-
-    Route::post('/tracker/{comic}', [TrackerController::class, 'update'])->name('tracker.update');
-    Route::post('/comics/{comic}/like', [ComicController::class, 'toggleLike'])->name('comics.like');
-});
-
-// panggil profile pict
+/*
+|--------------------------------------------------------------------------
+| Storage / File Viewer Routes
+|--------------------------------------------------------------------------
+*/
 Route::get('/storage/profiles/{filename}', function ($filename) {
-    if (! Storage::exists('profiles/' . $filename)) {
+    if (!Storage::exists('profiles/' . $filename)) {
         abort(404);
     }
-
     return Storage::response('profiles/' . $filename);
 })->name('profile.image.view');
